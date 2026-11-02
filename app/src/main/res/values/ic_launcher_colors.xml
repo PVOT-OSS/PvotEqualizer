@@ -2,5 +2,6 @@
 <!-- Launcher icon colours from the light Pvot palette; values-night holds the dark ones. -->
 <resources>
     <color name="ic_launcher_background">#FFFFFFFF</color>
+    <color name="ic_launcher_bars">#FFCFC7FF</color>
     <color name="ic_launcher_curve">#FF5A4BFF</color>
 </resources>
