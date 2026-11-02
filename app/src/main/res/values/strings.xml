@@ -34,7 +34,7 @@
 
     <!-- Presets -->
     <string name="presets_title">Presets</string>
-    <string name="presets_save_current">Save current curve</string>
+    <string name="presets_save">Save preset</string>
     <string name="presets_section_builtin">Built in</string>
     <string name="presets_section_saved">Your presets</string>
     <string name="cd_more_options">More options</string>
@@ -45,6 +45,15 @@
     <string name="presets_share">Share</string>
     <string name="presets_share_subject">PvotEqualizer preset: %1$s</string>
     <string name="presets_import">Import</string>
+    <string name="presets_import_sheet_title">Import preset</string>
+    <string name="presets_import_from_file">From a file</string>
+    <string name="presets_import_from_file_subtitle">Pick a preset someone shared with you</string>
+    <string name="presets_import_paste">Paste JSON</string>
+    <string name="presets_import_paste_subtitle">Paste the preset text directly</string>
+    <string name="presets_paste_title">Paste preset</string>
+    <string name="presets_paste_label">Preset JSON</string>
+    <string name="presets_paste_hint">Paste the text you were sent</string>
+    <string name="presets_import_action">Import</string>
     <string name="presets_import_failed_title">Could not import</string>
     <string name="presets_import_failed_message">That file is not a PvotEqualizer preset.</string>
     <string name="presets_action_ok">OK</string>

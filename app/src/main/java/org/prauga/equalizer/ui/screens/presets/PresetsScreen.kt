@@ -11,13 +11,14 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.MaterialTheme
+import androidx.annotation.DrawableRes
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.res.stringResource
@@ -78,6 +80,9 @@ fun PresetsScreen(container: AppContainer, modifier: Modifier = Modifier) {
     var naming by remember { mutableStateOf<NameTarget?>(null) }
     var editing by remember { mutableStateOf<Preset?>(null) }
     var editingCurve by remember { mutableStateOf<Preset?>(null) }
+    var importSheetVisible by remember { mutableStateOf(false) }
+    var pasteDialogVisible by remember { mutableStateOf(false) }
+    var pastedJson by remember { mutableStateOf("") }
     var importFailed by remember { mutableStateOf(false) }
 
     val openPreset = rememberLauncherForActivityResult(
@@ -114,18 +119,18 @@ fun PresetsScreen(container: AppContainer, modifier: Modifier = Modifier) {
                     .pvotReveal(1),
                 horizontalArrangement = Arrangement.spacedBy(PvotSpacing.S)
             ) {
-                OutlinedButton(
+                ActionCard(
+                    iconRes = R.drawable.ic_preset_add,
+                    label = stringResource(R.string.presets_save),
                     onClick = { naming = NameTarget(presetId = null, initial = "") },
                     modifier = Modifier.weight(1f)
-                ) {
-                    Text(stringResource(R.string.presets_save_current))
-                }
-                OutlinedButton(
-                    onClick = { openPreset.launch(IMPORT_MIME_TYPES) },
+                )
+                ActionCard(
+                    iconRes = R.drawable.ic_download,
+                    label = stringResource(R.string.presets_import),
+                    onClick = { importSheetVisible = true },
                     modifier = Modifier.weight(1f)
-                ) {
-                    Text(stringResource(R.string.presets_import))
-                }
+                )
             }
         }
         item {
@@ -223,6 +228,64 @@ fun PresetsScreen(container: AppContainer, modifier: Modifier = Modifier) {
                         viewModel.renamePreset(target.presetId, name)
                     }
                     naming = null
+                },
+                style = PvotDialogActionStyle.Primary
+            )
+        }
+    }
+
+    if (importSheetVisible) {
+        PvotBottomSheet(
+            visible = importSheetVisible,
+            onDismissRequest = { importSheetVisible = false },
+            title = stringResource(R.string.presets_import_sheet_title)
+        ) {
+            PvotSheetItem(
+                title = stringResource(R.string.presets_import_from_file),
+                subtitle = stringResource(R.string.presets_import_from_file_subtitle),
+                onClick = {
+                    importSheetVisible = false
+                    openPreset.launch(IMPORT_MIME_TYPES)
+                }
+            )
+            PvotSheetItem(
+                title = stringResource(R.string.presets_import_paste),
+                subtitle = stringResource(R.string.presets_import_paste_subtitle),
+                onClick = {
+                    importSheetVisible = false
+                    pastedJson = ""
+                    pasteDialogVisible = true
+                }
+            )
+        }
+    }
+
+    if (pasteDialogVisible) {
+        PvotDialog(
+            visible = true,
+            onDismissRequest = { pasteDialogVisible = false },
+            title = stringResource(R.string.presets_paste_title),
+            content = {
+                PvotTextField(
+                    value = pastedJson,
+                    onValueChange = { pastedJson = it },
+                    label = stringResource(R.string.presets_paste_label),
+                    placeholder = stringResource(R.string.presets_paste_hint),
+                    singleLine = false,
+                    minLines = 5,
+                    maxLines = 8
+                )
+            }
+        ) {
+            PvotDialogAction(
+                label = stringResource(R.string.presets_action_cancel),
+                onClick = { pasteDialogVisible = false }
+            )
+            PvotDialogAction(
+                label = stringResource(R.string.presets_import_action),
+                onClick = {
+                    pasteDialogVisible = false
+                    if (!viewModel.importPreset(pastedJson)) importFailed = true
                 },
                 style = PvotDialogActionStyle.Primary
             )
@@ -377,6 +440,39 @@ fun PresetsScreen(container: AppContainer, modifier: Modifier = Modifier) {
                     )
                 }
             }
+        }
+    }
+}
+
+/** A card that reads as an action: icon and label, centred in a third of the row. */
+@Composable
+private fun ActionCard(
+    @DrawableRes iconRes: Int,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    PvotCard(modifier = modifier, onClick = onClick) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = PvotSpacing.M, vertical = PvotSpacing.L),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.size(PvotSpacing.S))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1
+            )
         }
     }
 }
