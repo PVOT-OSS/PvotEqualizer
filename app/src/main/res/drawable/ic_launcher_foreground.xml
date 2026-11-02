@@ -1,23 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A parametric curve with three band nodes, drawn as it reads on the EQ screen. -->
+<!--
+  The equalizer: a spectrum of bands with the response curve drawn over them.
+  Bars stay dim and behind, the curve carries the accent, so the mark still reads at 48dp.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-        android:pathData="M28,60 C36,60 42,38 52,38 C62,38 66,64 80,64"
+        android:pathData="M34,76L34,62"
+        android:strokeColor="@color/ic_launcher_bars"
+        android:strokeWidth="7"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M44,76L44,54"
+        android:strokeColor="@color/ic_launcher_bars"
+        android:strokeWidth="7"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54,76L54,46"
+        android:strokeColor="@color/ic_launcher_bars"
+        android:strokeWidth="7"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M64,76L64,54"
+        android:strokeColor="@color/ic_launcher_bars"
+        android:strokeWidth="7"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M74,76L74,62"
+        android:strokeColor="@color/ic_launcher_bars"
+        android:strokeWidth="7"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M31.6,60.6 C34.2,58 42.3,44.5 47.4,44.8 C52.5,45 57.1,61.5 61.9,61.9 C66.8,62.4 74,49.8 76.4,47.4"
         android:strokeColor="@color/ic_launcher_curve"
         android:strokeWidth="5"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
     <path
-        android:pathData="M23,60a5,5 0 1,0 10,0a5,5 0 1,0 -10,0"
+        android:pathData="M42.4,44.8a5,5 0 1,0 10,0a5,5 0 1,0 -10,0"
         android:fillColor="@color/ic_launcher_curve" />
     <path
-        android:pathData="M47,38a5,5 0 1,0 10,0a5,5 0 1,0 -10,0"
-        android:fillColor="@color/ic_launcher_curve" />
-    <path
-        android:pathData="M75,64a5,5 0 1,0 10,0a5,5 0 1,0 -10,0"
+        android:pathData="M56.9,61.9a5,5 0 1,0 10,0a5,5 0 1,0 -10,0"
         android:fillColor="@color/ic_launcher_curve" />
 </vector>
