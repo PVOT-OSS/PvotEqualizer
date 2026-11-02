@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.prauga.equalizer.audio.EngineStatus
+import org.prauga.equalizer.data.AutoEqImport
 import org.prauga.equalizer.data.PresetJson
 import org.prauga.equalizer.di.AppContainer
 import org.prauga.equalizer.domain.EqBands
@@ -47,6 +48,11 @@ class EqualizerViewModel(private val container: AppContainer) : ViewModel() {
     private val _presets = MutableStateFlow(store.loadPresets())
     val presets: StateFlow<List<Preset>> = _presets.asStateFlow()
 
+    /** The last destructive change, so the screen can offer to undo it. */
+    private val _undoAction = MutableStateFlow<UndoAction?>(null)
+    val undoAction: StateFlow<UndoAction?> = _undoAction.asStateFlow()
+    private var undoSnapshot: UndoSnapshot? = null
+
     /** The name of the preset the curve came from, or null once it has been edited by hand. */
     private val _activePresetName = MutableStateFlow<String?>(null)
     val activePresetName: StateFlow<String?> = _activePresetName.asStateFlow()
@@ -77,6 +83,30 @@ class EqualizerViewModel(private val container: AppContainer) : ViewModel() {
         commit(_profile.value.withTargetGain(id, targetDb, SAMPLE_RATE_HZ))
     }
 
+    /** Puts one band back to 0 dB, the gesture behind holding a handle. */
+    fun resetBand(id: Int) {
+        rememberUndo(UndoAction.BAND_RESET)
+        commit(_profile.value.withTargetGain(id, 0.0, SAMPLE_RATE_HZ))
+    }
+
+    fun undo() {
+        val snapshot = undoSnapshot ?: return
+        undoSnapshot = null
+        _undoAction.value = null
+        commit(snapshot.profile)
+        if (snapshot.presets != _presets.value) persist(snapshot.presets)
+    }
+
+    fun dismissUndo() {
+        undoSnapshot = null
+        _undoAction.value = null
+    }
+
+    private fun rememberUndo(action: UndoAction) {
+        undoSnapshot = UndoSnapshot(_profile.value, _presets.value)
+        _undoAction.value = action
+    }
+
     fun setGain(id: Int, gainDb: Double) {
         _activePresetName.value = null
         update { current ->
@@ -105,6 +135,7 @@ class EqualizerViewModel(private val container: AppContainer) : ViewModel() {
 
     /** Applies a built-in curve and remembers which one it was. */
     fun applyBuiltIn(name: String, preampDb: Double, gainAt: (Double) -> Double) {
+        rememberUndo(UndoAction.PRESET_APPLIED)
         applyCurve(preampDb, gainAt)
         _activePresetName.value = name
     }
@@ -139,6 +170,7 @@ class EqualizerViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     fun resetToFlat() {
+        rememberUndo(UndoAction.CURVE_RESET)
         _activePresetName.value = null
         val flat = EqBands.profile(mode)
         _selectedBandId.value = flat.bands.first().id
@@ -146,6 +178,7 @@ class EqualizerViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     fun applyPreset(preset: Preset) {
+        rememberUndo(UndoAction.PRESET_APPLIED)
         switchTo(preset.mode)
         applyPresetToGrid(preset)
         _activePresetName.value = preset.name
@@ -169,11 +202,25 @@ class EqualizerViewModel(private val container: AppContainer) : ViewModel() {
         )
     }
 
-    /** Imports a preset from shared text. Returns false when the text is not a preset. */
-    fun importPreset(text: String): Boolean {
-        val preset = PresetJson.decodeFromString(text) ?: return false
+    /**
+     * Imports a preset from shared text: our own JSON, or an AutoEQ parametric or graphic export.
+     * Returns false when the text is none of those.
+     */
+    fun importPreset(text: String, name: String = "Imported curve"): Boolean {
+        val preset = PresetJson.decodeFromString(text)
+            ?: AutoEqImport.toPreset(text, mode, uniqueName(name))
+            ?: return false
         persist(_presets.value + preset)
         return true
+    }
+
+    /** Keeps repeated imports from stacking up under one name. */
+    private fun uniqueName(base: String): String {
+        val taken = _presets.value.map { it.name }.toSet()
+        if (base !in taken) return base
+        var index = 2
+        while ("$base $index" in taken) index++
+        return "$base $index"
     }
 
     private fun switchTo(mode: EqMode) {
@@ -205,6 +252,7 @@ class EqualizerViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     fun deletePreset(id: String) {
+        rememberUndo(UndoAction.PRESET_DELETED)
         persist(_presets.value.filterNot { it.id == id })
     }
 
@@ -239,6 +287,11 @@ class EqualizerViewModel(private val container: AppContainer) : ViewModel() {
             store.saveProfile(profile, mode)
         }
     }
+
+    /** What the last destructive change was, so the UI can name it in the undo bar. */
+    enum class UndoAction { PRESET_DELETED, CURVE_RESET, PRESET_APPLIED, BAND_RESET }
+
+    private data class UndoSnapshot(val profile: EqProfile, val presets: List<Preset>)
 
     companion object {
         private const val SAMPLE_RATE_HZ = 48_000.0
