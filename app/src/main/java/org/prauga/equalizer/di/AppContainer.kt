@@ -3,6 +3,7 @@ package org.prauga.equalizer.di
 import android.content.Context
 import org.prauga.equalizer.AppPreferences
 import org.prauga.equalizer.audio.AudioEngine
+import org.prauga.equalizer.data.EqStateStore
 import org.prauga.equalizer.audio.DynamicsProcessingEngine
 import org.prauga.equalizer.audio.EqController
 
@@ -15,6 +16,8 @@ import org.prauga.equalizer.audio.EqController
 class AppContainer(context: Context) {
 
     val preferences: AppPreferences = AppPreferences(context)
+
+    val stateStore: EqStateStore = EqStateStore(context)
 
     val engine: AudioEngine = DynamicsProcessingEngine()
 

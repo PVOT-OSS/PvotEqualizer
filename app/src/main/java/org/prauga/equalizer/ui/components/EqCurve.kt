@@ -45,7 +45,7 @@ import org.prauga.equalizer.dsp.ProfileResponse
  * @param profile The curve to draw
  * @param selectedBandId The band drawn as selected
  * @param onSelectBand Called when a handle is touched
- * @param onGainChange Called continuously while a handle is dragged
+ * @param onTargetGain Called continuously while a handle is dragged
  * @param modifier Modifier for the control
  */
 @Composable
@@ -53,7 +53,7 @@ fun EqCurve(
     profile: EqProfile,
     selectedBandId: Int?,
     onSelectBand: (Int) -> Unit,
-    onGainChange: (id: Int, gainDb: Double) -> Unit,
+    onTargetGain: (id: Int, gainDb: Double) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.colorScheme
@@ -70,7 +70,7 @@ fun EqCurve(
     // restarted gesture handler would cancel the drag that just began.
     val bands by rememberUpdatedState(profile.bands)
     val selectBand by rememberUpdatedState(onSelectBand)
-    val changeGain by rememberUpdatedState(onGainChange)
+    val changeGain by rememberUpdatedState(onTargetGain)
 
     Canvas(
         modifier = modifier
