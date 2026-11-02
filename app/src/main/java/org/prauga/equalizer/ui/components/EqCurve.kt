@@ -3,6 +3,7 @@ package org.prauga.equalizer.ui.components
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +26,7 @@ import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import java.util.Locale
 import kotlin.math.abs
@@ -46,7 +48,9 @@ import org.prauga.equalizer.dsp.ProfileResponse
  * @param selectedBandId The band drawn as selected
  * @param onSelectBand Called when a handle is touched
  * @param onTargetGain Called continuously while a handle is dragged
+ * @param onResetBand Called when a band is held, to put it back to 0 dB
  * @param modifier Modifier for the control
+ * @param height How tall the plot is; the screen decides so it fits the device
  */
 @Composable
 fun EqCurve(
@@ -54,7 +58,9 @@ fun EqCurve(
     selectedBandId: Int?,
     onSelectBand: (Int) -> Unit,
     onTargetGain: (id: Int, gainDb: Double) -> Unit,
-    modifier: Modifier = Modifier
+    onResetBand: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    height: Dp = CurveHeight
 ) {
     val colors = MaterialTheme.colorScheme
     val textMeasurer = rememberTextMeasurer()
@@ -71,13 +77,14 @@ fun EqCurve(
     val bands by rememberUpdatedState(profile.bands)
     val selectBand by rememberUpdatedState(onSelectBand)
     val changeGain by rememberUpdatedState(onTargetGain)
+    val resetBand by rememberUpdatedState(onResetBand)
 
     Canvas(
         modifier = modifier
             .fillMaxWidth()
-            .height(CurveHeight)
+            .height(height)
             .pointerInput(Unit) {
-                val hitRadius = 30.dp.toPx()
+                val touchSlop = 22.dp.toPx()
 
                 // Read the canvas size at use time, not when the handler is installed: at install
                 // time layout may not have run, and a stale size shifts every drag off the finger.
@@ -95,19 +102,15 @@ fun EqCurve(
                         (2 * DISPLAY_DB) * plotHeight).toFloat()
                 }
 
-                fun bandAt(position: Offset): ParametricBand? {
-                    var nearest: ParametricBand? = null
-                    var nearestDistance = Float.MAX_VALUE
-                    for (band in bands) {
-                        val dx = plotX(band.frequencyHz) - position.x
-                        val dy = plotY(band.gainDb) - position.y
-                        val distance = sqrt(dx * dx + dy * dy)
-                        if (distance < hitRadius && distance < nearestDistance) {
-                            nearestDistance = distance
-                            nearest = band
-                        }
-                    }
-                    return nearest
+                // Anywhere across the band's column grabs it, not just the handle: the handles are
+                // small targets and the track is what the eye aims at.
+                fun bandAtX(x: Float): ParametricBand? {
+                    val nearest = bands.minByOrNull { abs(plotX(it.frequencyHz) - x) }
+                        ?: return null
+                    val distance = abs(plotX(nearest.frequencyHz) - x)
+                    val reach = maxOf(touchSlop, (size.width - LabelWidth.toPx()) /
+                        (bands.size * 1.7f))
+                    return if (distance <= reach) nearest else null
                 }
 
                 fun gainAt(y: Float): Double {
@@ -119,9 +122,17 @@ fun EqCurve(
 
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false)
-                    val band = bandAt(down.position) ?: return@awaitEachGesture
+                    val band = bandAtX(down.position.x) ?: return@awaitEachGesture
                     selectBand(band.id)
                     down.consume()
+
+                    // Holding still on a band zeroes it; moving drags it.
+                    val held = awaitLongPressOrCancellation(down.id)
+                    if (held != null) {
+                        resetBand(band.id)
+                        held.consume()
+                        return@awaitEachGesture
+                    }
 
                     while (true) {
                         val event = awaitPointerEvent()
@@ -221,34 +232,58 @@ fun EqCurve(
 
         drawPath(curve, colors.primary, style = Stroke(width = 3f))
 
-        // Labels last: gains above each track, fixed frequencies below, skipped when they collide.
-        val labelGap = 8.dp.toPx()
-        val gainsShown = HashSet<Int>()
-        val frequenciesShown = HashSet<Int>()
-        var topEdge = -Float.MAX_VALUE
-        var bottomEdge = -Float.MAX_VALUE
+        // Labels last: gains above each track, frequencies below. Two rows each, so ten bands can
+        // still be read instead of dropping half the labels.
+        val labelGap = 6.dp.toPx()
+        val gainRowTop = listOf(0f, 14.dp.toPx())
+        val frequencyRowTop = listOf(
+            top + plotHeight + 3.dp.toPx(),
+            top + plotHeight + 18.dp.toPx()
+        )
+        val gainRowEdge = MutableList(gainRowTop.size) { -Float.MAX_VALUE }
+        val frequencyRowEdge = MutableList(frequencyRowTop.size) { -Float.MAX_VALUE }
+        val gainRowOf = HashMap<Int, Int>()
+        val frequencyRowOf = HashMap<Int, Int>()
 
         val ordered = profile.bands.withIndex().sortedBy { plotX(it.value.frequencyHz) }
+
+        fun place(
+            index: Int,
+            centreX: Float,
+            width: Float,
+            rowEdge: MutableList<Float>,
+            rowOf: MutableMap<Int, Int>
+        ) {
+            for (row in rowEdge.indices) {
+                if (centreX - width / 2f >= rowEdge[row] + labelGap) {
+                    rowOf[index] = row
+                    rowEdge[row] = centreX + width / 2f
+                    return
+                }
+            }
+            // A selected band keeps its label even when the row is full.
+            if (index == ordered.firstOrNull { it.value.id == selectedBandId }?.index) {
+                rowOf[index] = 0
+            }
+        }
+
         for ((index, band) in ordered) {
-            val forced = band.id == selectedBandId
             val x = plotX(band.frequencyHz)
-
-            val gainWidth = textMeasurer.measure(gainLabels[index], labelStyle).size.width.toFloat()
-            val gainFits = x - gainWidth / 2f >= topEdge + labelGap && x + gainWidth / 2f <= size.width
-            if (forced || gainFits) {
-                gainsShown.add(index)
-                topEdge = maxOf(topEdge, x + gainWidth / 2f)
-            }
-
-            val frequencyText = formatFrequency(band.frequencyHz)
-            val frequencyWidth =
-                textMeasurer.measure(frequencyText, labelStyle).size.width.toFloat()
-            val frequencyFits = x - frequencyWidth / 2f >= bottomEdge + labelGap &&
-                x + frequencyWidth / 2f <= size.width
-            if (forced || frequencyFits) {
-                frequenciesShown.add(index)
-                bottomEdge = maxOf(bottomEdge, x + frequencyWidth / 2f)
-            }
+            place(
+                index,
+                x,
+                textMeasurer.measure(gainLabels[index], labelStyle).size.width.toFloat(),
+                gainRowEdge,
+                gainRowOf
+            )
+            place(
+                index,
+                x,
+                textMeasurer.measure(formatFrequency(band.frequencyHz), labelStyle)
+                    .size.width.toFloat(),
+                frequencyRowEdge,
+                frequencyRowOf
+            )
         }
 
         profile.bands.forEachIndexed { index, band ->
@@ -267,21 +302,21 @@ fun EqCurve(
                 center = Offset(x, y)
             )
 
-            if (index in gainsShown) {
+            gainRowOf[index]?.let { row ->
                 drawCentredText(
                     textMeasurer = textMeasurer,
                     text = gainLabels[index],
                     centreX = x,
-                    top = 0f,
+                    top = gainRowTop[row],
                     style = if (selected) selectedLabelStyle else labelStyle
                 )
             }
-            if (index in frequenciesShown) {
+            frequencyRowOf[index]?.let { row ->
                 drawCentredText(
                     textMeasurer = textMeasurer,
                     text = formatFrequency(band.frequencyHz),
                     centreX = x,
-                    top = top + plotHeight + 4.dp.toPx(),
+                    top = frequencyRowTop[row],
                     style = if (selected) selectedLabelStyle else labelStyle
                 )
             }
@@ -315,10 +350,10 @@ private fun formatFrequency(hz: Double): String {
     return if (kilo) "${number}k" else number
 }
 
-private val CurveHeight = 300.dp
+val CurveHeight = 300.dp
 private val LabelWidth = 24.dp
-private val TopBand = 20.dp
-private val BottomBand = 22.dp
+private val TopBand = 30.dp
+private val BottomBand = 34.dp
 private const val MIN_HZ = 20.0
 private const val MAX_HZ = 20_000.0
 private val LOG_SPAN = ln(MAX_HZ / MIN_HZ)

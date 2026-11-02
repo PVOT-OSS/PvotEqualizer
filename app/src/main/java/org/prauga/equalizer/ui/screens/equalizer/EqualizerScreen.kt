@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -37,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -52,6 +54,8 @@ import com.prauga.pvot.designsystem.components.PvotSheetItem
 import com.prauga.pvot.designsystem.motion.pvotReveal
 import com.prauga.pvot.designsystem.theme.PvotSpacing
 import java.util.Locale
+import kotlin.math.exp
+import kotlin.math.ln
 import kotlinx.coroutines.delay
 import org.prauga.equalizer.R
 import org.prauga.equalizer.audio.EngineStatus
@@ -62,6 +66,8 @@ import org.prauga.equalizer.dsp.ProfileResponse
 import org.prauga.equalizer.ui.components.BUILT_IN_CURVES
 import org.prauga.equalizer.ui.components.EqCurve
 import org.prauga.equalizer.ui.components.EqSlider
+import org.prauga.equalizer.ui.components.UndoBar
+import org.prauga.equalizer.ui.components.ValueEntryDialog
 import org.prauga.equalizer.ui.components.ValuePill
 
 /** How much a tap on the stepper buttons moves the selected band. */
@@ -91,6 +97,33 @@ fun EqualizerScreen(container: AppContainer, modifier: Modifier = Modifier) {
     val heardDb = remember(profile, selectedBand.frequencyHz) {
         ProfileResponse(profile, 48_000.0).dbAt(selectedBand.frequencyHz)
     }
+
+    val undoAction by viewModel.undoAction.collectAsStateWithLifecycle()
+    LaunchedEffect(undoAction) {
+        if (undoAction != null) {
+            delay(6_000)
+            viewModel.dismissUndo()
+        }
+    }
+
+    // A tall phone gets a taller plot; a short one keeps the controls above the fold.
+    val curveHeight = with(LocalConfiguration.current) {
+        (screenHeightDp * 0.36f).dp.coerceIn(230.dp, 380.dp)
+    }
+
+    // The curve already includes the preamp, so its peak above 0 dB is what would clip.
+    val peakDb = remember(profile) {
+        val response = ProfileResponse(profile, 48_000.0)
+        var peak = -60.0
+        for (index in 0..199) {
+            val frequency = 20.0 * exp(ln(1_000.0) * index / 199.0)
+            peak = maxOf(peak, response.dbAt(frequency))
+        }
+        peak
+    }
+    val clippingDb = peakDb.coerceAtLeast(0.0)
+
+    var valueTarget by remember { mutableStateOf<ValueTarget?>(null) }
 
     // Changing mode swaps the band set; each mode keeps its own saved curve.
     LaunchedEffect(mode) {
@@ -125,8 +158,9 @@ fun EqualizerScreen(container: AppContainer, modifier: Modifier = Modifier) {
         }
     }
 
+    Box(modifier = modifier.fillMaxSize()) {
     PvotScreen(
-        modifier = modifier,
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PvotScreenDefaults.contentPadding(
             top = PvotScreenDefaults.TopPadding +
                 WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -169,11 +203,43 @@ fun EqualizerScreen(container: AppContainer, modifier: Modifier = Modifier) {
                     selectedBandId = selectedBand.id,
                     onSelectBand = viewModel::selectBand,
                     onTargetGain = viewModel::setTargetGain,
+                    onResetBand = viewModel::resetBand,
                     modifier = Modifier.padding(
                         horizontal = PvotSpacing.XS,
                         vertical = PvotSpacing.M
-                    )
+                    ),
+                    height = curveHeight
                 )
+                if (clippingDb > 0.05) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = PvotSpacing.L)
+                            .padding(bottom = PvotSpacing.M),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(
+                                R.string.eq_clipping,
+                                formatDb(clippingDb)
+                            ),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(Modifier.weight(1f))
+                        TextButton(
+                            onClick = {
+                                viewModel.setPreamp(profile.preampDb - clippingDb)
+                            }
+                        ) {
+                            Text(
+                                text = stringResource(R.string.eq_auto_preamp),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
             }
         }
 
@@ -212,7 +278,11 @@ fun EqualizerScreen(container: AppContainer, modifier: Modifier = Modifier) {
                         )
                         Spacer(Modifier.weight(1f))
                         ValuePill(
-                            stringResource(R.string.eq_db_value, formatDb(profile.preampDb))
+                            text = stringResource(
+                                R.string.eq_db_value,
+                                formatDb(profile.preampDb)
+                            ),
+                            onClick = { valueTarget = ValueTarget(null) }
                         )
                         TextButton(
                             onClick = { viewModel.setPreamp(0.0) },
@@ -273,7 +343,10 @@ fun EqualizerScreen(container: AppContainer, modifier: Modifier = Modifier) {
                                 .padding(start = PvotSpacing.S + 2.dp)
                                 .weight(1f)
                         )
-                        ValuePill(stringResource(R.string.eq_db_value, formatDb(heardDb)))
+                        ValuePill(
+                            text = stringResource(R.string.eq_db_value, formatDb(heardDb)),
+                            onClick = { valueTarget = ValueTarget(selectedBand.id) }
+                        )
                     }
                     EqSlider(
                         value = heardDb.toFloat(),
@@ -286,6 +359,45 @@ fun EqualizerScreen(container: AppContainer, modifier: Modifier = Modifier) {
                 }
             }
         }
+    }
+
+        if (undoAction != null) {
+            UndoBar(
+                message = stringResource(undoMessage(undoAction ?: return@Box)),
+                onUndo = viewModel::undo,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = PvotSpacing.L)
+                    .padding(bottom = 108.dp)
+                    .fillMaxWidth()
+            )
+        }
+    }
+
+    valueTarget?.let { target ->
+        val isPreamp = target.bandId == null
+        ValueEntryDialog(
+            title = if (isPreamp) {
+                stringResource(R.string.value_entry_preamp)
+            } else {
+                stringResource(R.string.value_entry_band, formatFrequency(selectedBand.frequencyHz))
+            },
+            initial = if (isPreamp) profile.preampDb else heardDb,
+            range = if (isPreamp) {
+                EqProfile.MIN_PREAMP_DB..EqProfile.MAX_PREAMP_DB
+            } else {
+                EqProfile.MIN_GAIN_DB..EqProfile.MAX_GAIN_DB
+            },
+            onDismiss = { valueTarget = null },
+            onConfirm = { value ->
+                if (isPreamp) {
+                    viewModel.setPreamp(value)
+                } else {
+                    target.bandId?.let { viewModel.setTargetGain(it, value) }
+                }
+                valueTarget = null
+            }
+        )
     }
 
     if (presetPickerVisible) {
@@ -329,6 +441,16 @@ private fun formatDb(db: Double): String {
 
 /** Whole decibels, for axis labels: -12, 0, +12. */
 private val CardShape = RoundedCornerShape(12.dp)
+
+/** Either the preamp (no band) or one band's gain, for the exact-entry dialog. */
+private data class ValueTarget(val bandId: Int?)
+
+private fun undoMessage(action: EqualizerViewModel.UndoAction): Int = when (action) {
+    EqualizerViewModel.UndoAction.PRESET_DELETED -> R.string.undo_preset_deleted
+    EqualizerViewModel.UndoAction.CURVE_RESET -> R.string.undo_curve_reset
+    EqualizerViewModel.UndoAction.PRESET_APPLIED -> R.string.undo_preset_applied
+    EqualizerViewModel.UndoAction.BAND_RESET -> R.string.undo_band_reset
+}
 
 @Composable
 private fun PresetDropdown(name: String?, onClick: () -> Unit, modifier: Modifier = Modifier) {
