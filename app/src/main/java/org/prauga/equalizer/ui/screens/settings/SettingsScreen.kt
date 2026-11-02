@@ -77,7 +77,7 @@ fun SettingsScreen(container: AppContainer, modifier: Modifier = Modifier) {
         }
         item {
             PvotSectionHeader(
-                title = stringResource(R.string.settings_section_appearance),
+                title = stringResource(R.string.settings_section_bands),
                 modifier = Modifier
                     .fillMaxWidth()
                     .pvotReveal(3)
@@ -88,6 +88,48 @@ fun SettingsScreen(container: AppContainer, modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .pvotReveal(4),
+                onClick = { preferences.updateAdvancedMode(!preferences.advancedMode) }
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(PvotSpacing.L),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(PvotSpacing.L)
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.settings_advanced_title),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(R.string.settings_advanced_subtitle),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = PvotSpacing.XS)
+                        )
+                    }
+                    Switch(
+                        checked = preferences.advancedMode,
+                        onCheckedChange = preferences::updateAdvancedMode
+                    )
+                }
+            }
+        }
+        item {
+            PvotSectionHeader(
+                title = stringResource(R.string.settings_section_appearance),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .pvotReveal(5)
+            )
+        }
+        item {
+            PvotCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .pvotReveal(6),
                 onClick = { preferences.updateLiquidGlass(!preferences.liquidGlass) }
             ) {
                 Row(
@@ -122,14 +164,14 @@ fun SettingsScreen(container: AppContainer, modifier: Modifier = Modifier) {
                 title = stringResource(R.string.settings_section_about),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .pvotReveal(5)
+                    .pvotReveal(7)
             )
         }
         item {
             PvotCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .pvotReveal(6)
+                    .pvotReveal(8)
             ) {
                 SettingsRow(
                     title = stringResource(R.string.settings_version_title),

@@ -61,8 +61,11 @@ data class EqProfile(
         /** Bands the editor starts a new preset with. */
         const val DEFAULT_BANDS: Int = 6
 
-        /** Bands a user may add to one profile. */
-        const val MAX_BANDS: Int = 12
+        /**
+         * Bands one profile may hold. Advanced mode tops out here; simple mode stops at
+         * [EqMode.SIMPLE].bandLimit.
+         */
+        val MAX_BANDS: Int = EqMode.ADVANCED.bandLimit
 
         const val MIN_FREQUENCY_HZ: Double = 20.0
         const val MAX_FREQUENCY_HZ: Double = 20_000.0
@@ -73,19 +76,7 @@ data class EqProfile(
         const val MIN_PREAMP_DB: Double = -12.0
         const val MAX_PREAMP_DB: Double = 12.0
 
-        /**
-         * A flat profile with the default six bands: shelves at the ends, bells between, and
-         * nothing boosted until the user moves something.
-         */
-        fun flat(): EqProfile = EqProfile(
-            bands = listOf(
-                ParametricBand(0, BandType.LOW_SHELF, 62.0, 0.7, 0.0),
-                ParametricBand(1, BandType.PEAK, 250.0, 1.0, 0.0),
-                ParametricBand(2, BandType.PEAK, 1_000.0, 1.0, 0.0),
-                ParametricBand(3, BandType.PEAK, 4_000.0, 1.0, 0.0),
-                ParametricBand(4, BandType.PEAK, 8_000.0, 1.0, 0.0),
-                ParametricBand(5, BandType.HIGH_SHELF, 12_000.0, 0.7, 0.0)
-            )
-        )
+        /** A flat profile at simple mode's fixed frequencies. */
+        fun flat(): EqProfile = EqBands.profile(EqMode.SIMPLE)
     }
 }
