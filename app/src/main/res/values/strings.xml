@@ -28,4 +28,12 @@
     <string name="settings_engine_subtitle">DynamicsProcessing is wired up in the next phase.</string>
     <string name="settings_section_about">About</string>
     <string name="settings_version_title">Version</string>
+
+    <!-- Debug harness for the DSP core; replaced by the real curve in the curve phase. -->
+    <string name="preview_title">Fit preview</string>
+    <string name="preview_caption">Smooth is the drawn curve; steps are what the engine will apply.</string>
+    <string name="preview_error">Worst fit error %1$s dB</string>
+    <string name="preview_cost">%1$s ms per fit, %2$d bands</string>
+    <string name="preview_gain">Peak gain %1$d dB</string>
+    <string name="preview_q">Peak Q %1$s</string>
 </resources>

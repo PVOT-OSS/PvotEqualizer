@@ -1,5 +1,6 @@
 package org.prauga.equalizer.dsp
 
+import java.util.PriorityQueue
 import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.min
@@ -52,8 +53,12 @@ data class DpFit(val bands: List<DpBand>) {
  * A uniform grid is not good enough. A bell at Q 8 is only about a ninth of an octave wide, so a
  * fixed 1/13-octave grid averages the tip away; that was measured at 3.2 dB low. Instead cutoffs are
  * placed greedily: start from the range edges plus an exact cutoff at every band centre, then
- * repeatedly split whichever span deviates most from the single gain it has been given. Sharp
- * features earn the resolution, flat stretches keep one band.
+ * repeatedly bisect whichever span fits its single gain worst. Sharp features earn the resolution,
+ * flat stretches keep one band.
+ *
+ * Bisecting rather than splitting at the worst *point* is deliberate: on a steady slope the worst
+ * point is always a span's edge, so point-splitting shaves one step off the end at a time and the
+ * error barely moves. It measured worse than the uniform grid it replaced before it was changed.
  *
  * The public API clamps the pre-EQ band count at [MAX_BAND_COUNT]; asking for more throws.
  */
@@ -114,17 +119,23 @@ object DpBandFit {
         return grid.placeCutoffs(bandCount.coerceIn(2, MAX_BAND_COUNT)).map(grid::frequencyAt)
     }
 
+    /** A run of grid points that will become one engine band. */
+    private class Span(
+        val start: Int,
+        val end: Int,
+        val deviation: Double,
+        val splitAt: Int
+    )
+
     /**
-     * The curve on a dense log grid, with prefix sums so any span's mean and worst deviation are
-     * cheap to ask for while cutoffs are being placed.
+     * The curve on a dense log grid, with prefix sums so any span's mean is constant time, and a
+     * queue so placing cutoffs never rescans spans that did not change.
      */
     private class Grid(profile: EqProfile, sampleRateHz: Double) {
 
         private val top = min(HIGHEST_HZ, sampleRateHz * 0.49)
 
-        private val frequencies = DoubleArray(GRID_SIZE) { index ->
-            LOWEST_HZ * (top / LOWEST_HZ).pow(index.toDouble() / (GRID_SIZE - 1))
-        }
+        private val frequencies: DoubleArray
 
         private val curve: DoubleArray
         private val prefixSums: DoubleArray
@@ -134,16 +145,22 @@ object DpBandFit {
 
         /**
          * A band centre keeps its exact frequency rather than the nearest grid point, so the cutoffs
-         * the engine receives land where the user put the band and not up to a grid step away.
+         * the engine receives land where the user put the band.
          */
         private val anchorFrequencies: Map<Int, Double>
 
         init {
-            val response = ProfileResponse(profile, sampleRateHz)
-            curve = DoubleArray(GRID_SIZE) { index -> response.dbAt(frequencies[index]) }
+            val step = (top / LOWEST_HZ).pow(1.0 / (GRID_SIZE - 1))
+            frequencies = DoubleArray(GRID_SIZE) { index -> LOWEST_HZ * step.pow(index) }
+
+            // One pass over the grid, not one pass per band: this is what keeps a refit inside a
+            // frame on a phone.
+            curve = ProfileResponse(profile, sampleRateHz).curve(frequencies)
+
             prefixSums = DoubleArray(GRID_SIZE + 1).also { sums ->
                 for (index in 0 until GRID_SIZE) sums[index + 1] = sums[index] + curve[index]
             }
+
             val centres = profile.bands
                 .asSequence()
                 .filter { it.enabled }
@@ -165,13 +182,8 @@ object DpBandFit {
         }
 
         /**
-         * Chooses [count] band boundaries on the grid: the range edges, an exact one at every enabled
-         * band centre, then repeated bisection of whichever span fits its single gain worst.
-         *
-         * Splitting at the worst *point* rather than in the middle does not work: on a steady slope
-         * the worst point is always the edge of the span, so each split shaves one grid step off the
-         * end and the error only creeps down. Bisecting the worst span halves its error instead, and
-         * because the choice is always the current worst, the error equalises across the range.
+         * Chooses [count] band boundaries: the range edges, an exact one at every enabled band
+         * centre, then repeated bisection of whichever span fits its single gain worst.
          */
         fun placeCutoffs(count: Int): List<Int> {
             val selected = sortedSetOf(0, GRID_SIZE - 1)
@@ -179,30 +191,35 @@ object DpBandFit {
                 if (anchor > 0 && anchor < GRID_SIZE - 1) selected.add(anchor)
             }
 
-            while (selected.size < count) {
-                var worstDeviation = 0.0
-                var worstStart = -1
-                var worstEnd = -1
+            val queue = PriorityQueue(compareByDescending<Span> { it.deviation })
+            val initial = selected.toIntArray()
+            for (index in initial.indices) {
+                val start = if (index == 0) -1 else initial[index - 1]
+                span(start, initial[index])?.let(queue::add)
+            }
 
-                val boundaries = selected.toIntArray()
-                for (segment in boundaries.indices) {
-                    val start = if (segment == 0) -1 else boundaries[segment - 1]
-                    val end = boundaries[segment]
-                    if (end - start < 2) continue
-                    val mean = meanDb(start + 1, end)
-                    for (index in (start + 1)..(end - 1)) {
-                        val deviation = abs(curve[index] - mean)
-                        if (deviation > worstDeviation) {
-                            worstDeviation = deviation
-                            worstStart = start
-                            worstEnd = end
-                        }
-                    }
-                }
-                if (worstEnd - worstStart < 2) break
-                selected.add(worstStart + (worstEnd - worstStart) / 2)
+            while (selected.size < count) {
+                val worst = queue.poll() ?: break
+                // A span already flat to within nothing has no use for another band; its slots are
+                // better spent elsewhere, so drop it rather than stopping.
+                if (worst.deviation <= 0.0) continue
+                selected.add(worst.splitAt)
+                span(worst.start, worst.splitAt)?.let(queue::add)
+                span(worst.splitAt, worst.end)?.let(queue::add)
             }
             return selected.toList()
+        }
+
+        /** The span from [start] to [end], with its worst deviation and the point it would split at. */
+        private fun span(start: Int, end: Int): Span? {
+            if (end - start < 2) return null
+            val mean = meanDb(start + 1, end)
+            var worst = 0.0
+            for (index in (start + 1)..(end - 1)) {
+                val deviation = abs(curve[index] - mean)
+                if (deviation > worst) worst = deviation
+            }
+            return Span(start, end, worst, start + (end - start) / 2)
         }
 
         private fun indexOf(frequencyHz: Double): Int {
