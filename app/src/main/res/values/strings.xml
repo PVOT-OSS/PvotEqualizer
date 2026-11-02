@@ -11,15 +11,15 @@
 
     <!-- Equalizer -->
     <string name="eq_title">Equalizer</string>
-    <string name="eq_power_title">Equalizer</string>
     <string name="eq_power_off">Applies to apps that share their audio session with the system.</string>
     <string name="eq_power_waiting">No audio session yet. Start music in an app that shares its session.</string>
     <string name="eq_power_unshared">Music is playing, but its app has not shared its audio session. Pause and play again to connect it.</string>
     <string name="eq_power_connected">Equalizing %1$s</string>
     <string name="eq_power_failed">Engine unavailable: %1$s</string>
-    <string name="eq_bands_section">Bands</string>
-    <string name="eq_bands_empty_title">No bands yet</string>
-    <string name="eq_bands_empty_message">The curve and its bands are built in the next phase.</string>
+
+    <string name="eq_preamp">Preamp</string>
+    <string name="eq_db_value">%1$s dB</string>
+    <string name="eq_reset">Reset</string>
 
     <!-- The ongoing notification the foreground service needs -->
     <string name="engine_notification_channel">Equalizer</string>
@@ -34,25 +34,21 @@
     <string name="presets_empty">No presets yet. Saved curves will appear here.</string>
 
     <!-- Settings -->
-    <string name="settings_section_appearance">Appearance</string>
-    <string name="settings_glass_title">Liquid glass</string>
-    <string name="settings_glass_subtitle">Bends and refracts what is behind the navigation bar. Off gives a lighter frosted look.</string>
     <string name="settings_section_engine">Engine</string>
     <string name="settings_engine_title">Audio engine</string>
     <string name="settings_engine_value_off">Off</string>
     <string name="settings_engine_value_waiting">Waiting</string>
     <string name="settings_engine_value_failed">Failed</string>
     <string name="settings_engine_subtitle_off">Turn the equalizer on to start the engine.</string>
+    <string name="settings_section_bands">Bands</string>
+    <string name="settings_advanced_title">Advanced mode</string>
+    <string name="settings_advanced_subtitle">Six bands by default, six to ten when advanced mode is on.</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_glass_title">Liquid glass</string>
+    <string name="settings_glass_subtitle">Bends and refracts what is behind the navigation bar. Off gives a lighter frosted look.</string>
     <string name="settings_section_about">About</string>
     <string name="settings_version_title">Version</string>
 
-    <!-- Debug harness for the DSP core; replaced by the real curve in the curve phase. -->
-    <string name="preview_title">Fit preview</string>
-    <string name="preview_caption">Smooth is the drawn curve; steps are what the engine will apply.</string>
-    <string name="preview_error">Worst fit error %1$s dB</string>
-    <string name="preview_gain">Peak gain %1$d dB</string>
-    <string name="preview_q">Peak Q %1$s</string>
-    <string name="preview_sent">This curve is what the engine is applying.</string>
     <plurals name="settings_engine_sessions">
         <item quantity="one">%1$d session</item>
         <item quantity="other">%1$d sessions</item>
@@ -60,9 +56,5 @@
     <plurals name="settings_engine_bands">
         <item quantity="one">DynamicsProcessing, %1$d band</item>
         <item quantity="other">DynamicsProcessing, %1$d bands</item>
-    </plurals>
-    <plurals name="preview_cost">
-        <item quantity="one">%1$s ms per fit, %2$d band</item>
-        <item quantity="other">%1$s ms per fit, %2$d bands</item>
     </plurals>
 </resources>
