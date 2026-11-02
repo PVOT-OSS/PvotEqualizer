@@ -36,16 +36,19 @@ global attach).
 
 ## Working agreements
 
-- **Never commit or push on your own.** Ask first. When told to commit, author and committer are
-  `debz-g <77199373+debz-g@users.noreply.github.com>` (set `GIT_AUTHOR_*` and `GIT_COMMITTER_*`
-  env vars, do not edit git config). Commit messages must not mention Claude, AI or an LLM, and
-  carry no Co-Authored-By or "generated with" line. The same goes for PR descriptions.
-- Pushes go to the fork `debz-g/PvotEqualizer`; `origin` is `PVOT-OSS/PvotEqualizer`. PRs target
-  `origin` `main`.
-- **Rebase, never merge.** A PR with a merge commit does not get merged. Keep history linear: bring
-  in updates with `git fetch origin main && git rebase origin/main`, never `git merge`. Rebasing
-  rewrites the branch, so pushing it needs `git push --force-with-lease` to the fork: ask first,
-  once, and never to `origin`.
+- **Ask before pushing**, and never commit or push on your own initiative otherwise. When told to
+  commit, author and committer are `debz-g <77199373+debz-g@users.noreply.github.com>` (set
+  `GIT_AUTHOR_*` and `GIT_COMMITTER_*` env vars, do not edit git config). Commit messages must not
+  mention Claude, AI or an LLM, and carry no Co-Authored-By or "generated with" line. The same goes
+  for PR descriptions.
+- `origin` is `PVOT-OSS/PvotEqualizer`, the real repository, and `main` tracks it. **There is no fork
+  in the workflow.** The fork caused rebase and accidental merge-commit trouble; it is retired.
+- **New features and larger changes go on a branch**, pushed to `origin` and opened as a PR into
+  `main`: `git switch -c feat/whatever`, then `git push -u origin feat/whatever`. Keep `main` for
+  work that is finished and verified on a device.
+- **Rebase, never merge.** Keep history linear: bring a branch up to date with
+  `git fetch origin main && git rebase origin/main`, never `git merge`. A rebased branch needs
+  `git push --force-with-lease` after asking once. Never force-push `main`.
 - Ask before downloads, deleting data, or anything hard to undo.
 - Say what was verified and what was not. "It builds" is not "I looked at it on the phone".
 - **Ask before using the test phone.** The S23 is a daily driver and other work may be running on it.
