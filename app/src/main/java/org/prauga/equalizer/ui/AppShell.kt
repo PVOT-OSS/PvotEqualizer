@@ -103,7 +103,7 @@ fun AppShell(container: AppContainer) {
 
             when (selectedTab) {
                 0 -> EqualizerScreen(container, screenModifier)
-                1 -> PresetsScreen(screenModifier)
+                1 -> PresetsScreen(container, screenModifier)
                 else -> SettingsScreen(container, screenModifier)
             }
         }

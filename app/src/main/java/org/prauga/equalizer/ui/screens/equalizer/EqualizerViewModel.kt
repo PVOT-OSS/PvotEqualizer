@@ -5,69 +5,81 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import kotlin.math.abs
+import java.util.UUID
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.prauga.equalizer.audio.EngineStatus
+import org.prauga.equalizer.data.PresetJson
 import org.prauga.equalizer.di.AppContainer
 import org.prauga.equalizer.domain.EqBands
 import org.prauga.equalizer.domain.EqMode
 import org.prauga.equalizer.domain.EqProfile
+import org.prauga.equalizer.domain.Preset
 import org.prauga.equalizer.dsp.DpBandFit
-import org.prauga.equalizer.dsp.ProfileResponse
+import org.prauga.equalizer.dsp.withTargetGain
 
 /**
- * The editor's state: the profile being shaped, which band is selected, and the engine's status.
+ * The editor's state: the curve, the selected band, the engine's status and the saved presets.
  *
- * Bands sit at fixed frequencies, so the only edit is a band's gain. Every edit is committed to the
- * engine as it happens, so the drawn curve and the applied one cannot drift apart.
+ * The curve is restored from disk on construction and written back shortly after each edit, so the
+ * app no longer forgets the equalizer on process death. Both screens share one instance, which is
+ * why applying a preset on the presets tab immediately updates the curve on the other.
  */
 class EqualizerViewModel(private val container: AppContainer) : ViewModel() {
 
+    private val store = container.stateStore
+
     val status: StateFlow<EngineStatus> = container.engine.status
 
-    private val _profile = MutableStateFlow(EqProfile.flat())
+    private var mode: EqMode = container.preferences.mode
+
+    private val _profile = MutableStateFlow(store.loadProfile(mode))
     val profile: StateFlow<EqProfile> = _profile.asStateFlow()
 
-    private val _selectedBandId = MutableStateFlow(EqProfile.flat().bands.first().id)
+    private val _selectedBandId = MutableStateFlow(_profile.value.bands.first().id)
     val selectedBandId: StateFlow<Int?> = _selectedBandId.asStateFlow()
 
+    private val _presets = MutableStateFlow(store.loadPresets())
+    val presets: StateFlow<List<Preset>> = _presets.asStateFlow()
+
+    /** The name of the preset the curve came from, or null once it has been edited by hand. */
+    private val _activePresetName = MutableStateFlow<String?>(null)
+    val activePresetName: StateFlow<String?> = _activePresetName.asStateFlow()
+
+    private var saveJob: Job? = null
+
     init {
-        // The first fit in a fresh process costs about 10 ms; pay it before the first drag does.
+        // Hand the restored curve to the engine straight away, so a restored power state applies
+        // it without waiting for an edit.
+        container.equalizer.setProfile(_profile.value)
         viewModelScope.launch(Dispatchers.Default) {
             DpBandFit.fit(_profile.value, SAMPLE_RATE_HZ)
         }
     }
 
-    fun setEnabled(enabled: Boolean) = container.equalizer.setEnabled(enabled)
+    fun setEnabled(enabled: Boolean) {
+        store.savePowerOn(enabled)
+        container.equalizer.setEnabled(enabled)
+    }
 
     fun selectBand(id: Int) {
         _selectedBandId.value = id
     }
 
-    /**
-     * Sets the *heard* gain at a band's frequency, which is what its handle sits at.
-     *
-     * The curve at a band's centre is that band's gain plus whatever its neighbours contribute
-     * there, so the stored band gain has to give that contribution back. A bell's response at its
-     * own centre is exactly its gain, so the neighbours' share is independent of the value being set
-     * and can be subtracted once.
-     */
+    /** Sets the heard gain at a band's frequency, which is where its handle sits. */
     fun setTargetGain(id: Int, targetDb: Double) {
-        val current = _profile.value
-        val band = current.bands.firstOrNull { it.id == id } ?: return
-        val heard = ProfileResponse(current, SAMPLE_RATE_HZ).dbAt(band.frequencyHz)
-        val neighbours = heard - band.gainDb
-        setGain(id, targetDb - neighbours)
+        _activePresetName.value = null
+        commit(_profile.value.withTargetGain(id, targetDb, SAMPLE_RATE_HZ))
     }
 
-    /** Sets the band gain itself. */
     fun setGain(id: Int, gainDb: Double) {
-        val current = _profile.value
-        commit(
+        _activePresetName.value = null
+        update { current ->
             current.copy(
                 bands = current.bands.map { band ->
                     if (band.id == id) {
@@ -79,59 +91,158 @@ class EqualizerViewModel(private val container: AppContainer) : ViewModel() {
                     }
                 }
             )
-        )
+        }
     }
 
     fun setPreamp(preampDb: Double) {
-        commit(
-            _profile.value.copy(
+        _activePresetName.value = null
+        update {
+            it.copy(
                 preampDb = preampDb.coerceIn(EqProfile.MIN_PREAMP_DB, EqProfile.MAX_PREAMP_DB)
             )
-        )
+        }
     }
 
-    /**
-     * Rebuilds the bands when the mode changes. The two modes use different grids, so a band inherits
-     * the gain of the nearest band that existed before, when one is close enough to be the same
-     * intent. Nothing else survives a mode change, which is the cost of fixed frequencies.
-     */
-    fun syncBands(mode: EqMode) {
-        val current = _profile.value
-        val rebuilt = EqBands.profile(mode, current.preampDb).let { fresh ->
-            fresh.copy(
-                bands = fresh.bands.map { band ->
-                    val nearest = current.bands.minByOrNull {
-                        abs(it.frequencyHz - band.frequencyHz)
-                    }
-                    val closeEnough = nearest != null &&
-                        nearest.frequencyHz / band.frequencyHz in 0.9..1.1
-                    if (closeEnough) band.copy(gainDb = nearest.gainDb) else band
+    /** Applies a built-in curve and remembers which one it was. */
+    fun applyBuiltIn(name: String, preampDb: Double, gainAt: (Double) -> Double) {
+        applyCurve(preampDb, gainAt)
+        _activePresetName.value = name
+    }
+
+    /** Applies a whole curve in one step. */
+    fun applyCurve(preampDb: Double, gainAt: (Double) -> Double) {
+        update { current ->
+            current.copy(
+                preampDb = preampDb.coerceIn(EqProfile.MIN_PREAMP_DB, EqProfile.MAX_PREAMP_DB),
+                bands = current.bands.map { band ->
+                    band.copy(
+                        gainDb = gainAt(band.frequencyHz)
+                            .coerceIn(EqProfile.MIN_GAIN_DB, EqProfile.MAX_GAIN_DB)
+                    )
                 }
             )
         }
-        if (rebuilt.bands.map { it.frequencyHz } == current.bands.map { it.frequencyHz }) return
+    }
 
-        if (rebuilt.bands.none { it.id == _selectedBandId.value }) {
-            _selectedBandId.value = rebuilt.bands.first().id
+    /**
+     * Switches the band grid. Each mode keeps its own saved curve, so switching back restores what
+     * was there rather than starting from flat.
+     */
+    fun syncBands(mode: EqMode) {
+        if (mode == this.mode) return
+        this.mode = mode
+        val restored = store.loadProfile(mode)
+        if (restored.bands.none { it.id == _selectedBandId.value }) {
+            _selectedBandId.value = restored.bands.first().id
         }
-        commit(rebuilt)
+        commit(restored)
     }
 
     fun resetToFlat() {
-        val flat = EqBands.profile(
-            mode = if (_profile.value.bands.size == EqBands.ALL.size) EqMode.ADVANCED else EqMode.SIMPLE
-        )
+        _activePresetName.value = null
+        val flat = EqBands.profile(mode)
         _selectedBandId.value = flat.bands.first().id
         commit(flat)
     }
 
+    fun applyPreset(preset: Preset) {
+        switchTo(preset.mode)
+        applyPresetToGrid(preset)
+        _activePresetName.value = preset.name
+    }
+
+    /** Replaces a preset's curve with an edited copy, leaving the live equalizer alone. */
+    fun updatePresetCurve(id: String, profile: EqProfile) {
+        val existing = _presets.value.firstOrNull { it.id == id } ?: return
+        persist(
+            _presets.value.map { preset ->
+                if (preset.id != id) {
+                    preset
+                } else {
+                    existing.copy(
+                        preampDb = profile.preampDb,
+                        gains = profile.bands.filter { it.gainDb != 0.0 }
+                            .associate { it.frequencyHz to it.gainDb }
+                    )
+                }
+            }
+        )
+    }
+
+    /** Imports a preset from shared text. Returns false when the text is not a preset. */
+    fun importPreset(text: String): Boolean {
+        val preset = PresetJson.decodeFromString(text) ?: return false
+        persist(_presets.value + preset)
+        return true
+    }
+
+    private fun switchTo(mode: EqMode) {
+        if (mode == this.mode) return
+        this.mode = mode
+        container.preferences.updateAdvancedMode(mode == EqMode.ADVANCED)
+    }
+
+    private fun applyPresetToGrid(preset: Preset) {
+        val base = preset.toProfile()
+        this.mode = preset.mode
+        if (base.bands.none { it.id == _selectedBandId.value }) {
+            _selectedBandId.value = base.bands.first().id
+        }
+        commit(base)
+    }
+
+    /** Saves the current curve as a new preset. Blank names are ignored. */
+    fun savePreset(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isEmpty()) return
+        persist(_presets.value + Preset.from(trimmed, _profile.value, mode))
+    }
+
+    fun renamePreset(id: String, name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isEmpty()) return
+        persist(_presets.value.map { if (it.id == id) it.copy(name = trimmed) else it })
+    }
+
+    fun deletePreset(id: String) {
+        persist(_presets.value.filterNot { it.id == id })
+    }
+
+    /** Saves a built-in curve as an editable preset, so it can be tweaked and kept. */
+    fun saveBuiltInAsPreset(name: String, preampDb: Double, gainAt: (Double) -> Double) {
+        val gains = _profile.value.bands.map { it.frequencyHz to gainAt(it.frequencyHz) }
+        persist(
+            _presets.value + Preset(
+                id = UUID.randomUUID().toString(),
+                name = name,
+                mode = mode,
+                preampDb = preampDb,
+                gains = gains.filter { it.second != 0.0 }.toMap()
+            )
+        )
+    }
+
+    private fun persist(presets: List<Preset>) {
+        _presets.value = presets
+        store.savePresets(presets)
+    }
+
+    private fun update(transform: (EqProfile) -> EqProfile) = commit(transform(_profile.value))
+
     private fun commit(profile: EqProfile) {
         _profile.value = profile
         container.equalizer.setProfile(profile)
+        // A drag fires this many times a second; write once the finger has settled.
+        saveJob?.cancel()
+        saveJob = viewModelScope.launch {
+            delay(SAVE_DEBOUNCE_MS)
+            store.saveProfile(profile, mode)
+        }
     }
 
     companion object {
         private const val SAMPLE_RATE_HZ = 48_000.0
+        private const val SAVE_DEBOUNCE_MS = 400L
 
         fun factory(container: AppContainer): ViewModelProvider.Factory = viewModelFactory {
             initializer { EqualizerViewModel(container) }
