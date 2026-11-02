@@ -17,7 +17,10 @@
     <string name="eq_power_connected">Equalizing %1$s</string>
     <string name="eq_power_failed">Engine unavailable: %1$s</string>
 
+    <string name="eq_preset">Preset</string>
+    <string name="eq_preset_custom">Custom</string>
     <string name="eq_preamp">Preamp</string>
+
     <string name="eq_db_value">%1$s dB</string>
     <string name="eq_reset">Reset</string>
 
@@ -31,6 +34,32 @@
 
     <!-- Presets -->
     <string name="presets_title">Presets</string>
+    <string name="presets_save_current">Save current curve</string>
+    <string name="presets_section_builtin">Built in</string>
+    <string name="presets_section_saved">Your presets</string>
+    <string name="cd_more_options">More options</string>
+    <string name="presets_edit_curve">Edit curve</string>
+    <string name="presets_edit_curve_subtitle">Open this curve in its own editor</string>
+    <string name="presets_editor_title">Editing %1$s</string>
+    <string name="presets_editor_subtitle">Changes stay in this preset</string>
+    <string name="presets_share">Share</string>
+    <string name="presets_share_subject">PvotEqualizer preset: %1$s</string>
+    <string name="presets_import">Import</string>
+    <string name="presets_import_failed_title">Could not import</string>
+    <string name="presets_import_failed_message">That file is not a PvotEqualizer preset.</string>
+    <string name="presets_action_ok">OK</string>
+    <string name="presets_subtitle">Preamp %1$s dB</string>
+    <string name="presets_dialog_save_title">Save preset</string>
+    <string name="presets_dialog_rename_title">Rename preset</string>
+    <string name="presets_name_label">Preset name</string>
+    <string name="presets_action_save">Save</string>
+    <string name="presets_action_cancel">Cancel</string>
+    <string name="presets_action_rename">Rename</string>
+    <string name="presets_action_delete">Delete</string>
+    <string name="preset_flat">Flat</string>
+    <string name="preset_bass">Bass</string>
+    <string name="preset_vocal">Vocal</string>
+    <string name="preset_treble">Treble</string>
     <string name="presets_empty">No presets yet. Saved curves will appear here.</string>
 
     <!-- Settings -->
