@@ -1,6 +1,7 @@
 package org.prauga.equalizer.ui.components
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -16,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.prauga.pvot.designsystem.components.slider.PvotSlider
@@ -40,7 +43,7 @@ import org.prauga.equalizer.dsp.ProfileResponse
  * replaced by the real `EqCurve` in the curve phase.
  */
 @Composable
-fun FitPreview(modifier: Modifier = Modifier) {
+fun FitPreview(onSendProfile: (EqProfile) -> Unit, modifier: Modifier = Modifier) {
     var gainDb by remember { mutableFloatStateOf(6f) }
     var q by remember { mutableFloatStateOf(1.5f) }
 
@@ -69,7 +72,13 @@ fun FitPreview(modifier: Modifier = Modifier) {
             val frequency = MIN_HZ * Math.pow(MAX_HZ / MIN_HZ, index.toDouble() / (ERROR_SAMPLES - 1))
             worst = maxOf(worst, abs(fit.dbAt(frequency) - response.dbAt(frequency)))
         }
-        PreviewData(fit = fit, response = response, worstErrorDb = worst)
+        PreviewData(profile = profile, fit = fit, response = response, worstErrorDb = worst)
+    }
+
+    // Always mirror the harness curve onto the engine. A toggle here meant a listen could be judged
+    // against a profile that was never sent, which wasted more time than the toggle saved.
+    LaunchedEffect(preview.profile) {
+        onSendProfile(preview.profile)
     }
 
     val analyticColor = MaterialTheme.colorScheme.primary
@@ -137,8 +146,9 @@ fun FitPreview(modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.onSurface
         )
         Text(
-            text = stringResource(
-                R.string.preview_cost,
+            text = pluralStringResource(
+                R.plurals.preview_cost,
+                preview.fit.bands.size,
                 String.format(Locale.US, "%.2f", warmFitMillis),
                 preview.fit.bands.size
             ),
@@ -170,10 +180,17 @@ fun FitPreview(modifier: Modifier = Modifier) {
             onValueChange = { q = it },
             valueRange = 0.3f..10f
         )
+        Text(
+            text = stringResource(R.string.preview_sent),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = PvotSpacing.M)
+        )
     }
 }
 
 private data class PreviewData(
+    val profile: EqProfile,
     val fit: DpFit,
     val response: ProfileResponse,
     val worstErrorDb: Double

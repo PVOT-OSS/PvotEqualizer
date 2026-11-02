@@ -207,6 +207,25 @@ object DpBandFit {
                 span(worst.start, worst.splitAt)?.let(queue::add)
                 span(worst.splitAt, worst.end)?.let(queue::add)
             }
+
+            // The engine's band count is fixed when the effect is created, so a fit has to return
+            // exactly the count it was asked for. When the curve has no error left to chase, keep
+            // halving the widest span: its gains are already equal, so nothing changes audibly.
+            while (selected.size < count) {
+                val ordered = selected.toIntArray()
+                var widestStart = -1
+                var widest = 0
+                for (index in ordered.indices) {
+                    val start = if (index == 0) -1 else ordered[index - 1]
+                    val width = ordered[index] - start
+                    if (width > widest) {
+                        widest = width
+                        widestStart = start
+                    }
+                }
+                if (widest < 2) break
+                selected.add(widestStart + widest / 2)
+            }
             return selected.toList()
         }
 
