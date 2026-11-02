@@ -1,8 +1,8 @@
 package org.prauga.equalizer
 
 import android.os.Bundle
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.CompositionLocalProvider
+import com.prauga.pvot.designsystem.effects.LocalPvotGlassIntensity
 import com.prauga.pvot.designsystem.platform.PvotBaseActivity
 import com.prauga.pvot.designsystem.theme.PvotAppTheme
 import org.prauga.equalizer.ui.AppShell
@@ -10,18 +10,16 @@ import org.prauga.equalizer.ui.AppShell
 class MainActivity : PvotBaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val container = (application as PvotEqualizerApp).container
         setPvotContent {
-            PvotAppTheme {
-                AppShell()
+            CompositionLocalProvider(
+                LocalPvotGlassIntensity provides container.preferences.glassIntensity
+            ) {
+                PvotAppTheme {
+                    AppShell(container)
+                }
             }
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun AppShellPreview() {
-    PvotAppTheme {
-        AppShell()
-    }
-}
