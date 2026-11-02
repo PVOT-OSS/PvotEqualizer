@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launcher icon colours from the dark Pvot palette. -->
+<resources>
+    <color name="ic_launcher_background">#FF000000</color>
+    <color name="ic_launcher_curve">#FF8577FF</color>
+</resources>
