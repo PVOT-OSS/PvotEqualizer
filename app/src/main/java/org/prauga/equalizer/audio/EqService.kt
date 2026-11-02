@@ -52,7 +52,15 @@ class EqService : Service() {
         }
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_TURN_OFF) {
+            // Persist first: otherwise the app would switch itself back on the next launch.
+            val container = (application as PvotEqualizerApp).container
+            container.stateStore.savePowerOn(false)
+            container.equalizer.setEnabled(false)
+        }
+        return START_STICKY
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -113,11 +121,18 @@ class EqService : Service() {
                 status.attachedPackages.joinToString()
             )
         }
+        val turnOff = PendingIntent.getService(
+            this,
+            1,
+            intent(this).setAction(ACTION_TURN_OFF),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_equalizer)
             .setContentTitle(getString(R.string.engine_notification_title))
             .setContentText(text)
             .setContentIntent(openApp)
+            .addAction(0, getString(R.string.engine_action_turn_off), turnOff)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -144,6 +159,9 @@ class EqService : Service() {
     }
 
     companion object {
+        /** Stops the equalizer from the notification, without opening the app. */
+        const val ACTION_TURN_OFF = "org.prauga.equalizer.action.TURN_OFF"
+
         /** The intent that starts this service. */
         fun intent(context: Context): Intent = Intent(context, EqService::class.java)
     }

@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -23,6 +24,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -52,6 +55,7 @@ import com.prauga.pvot.designsystem.components.textfield.PvotTextField
 import com.prauga.pvot.designsystem.motion.pvotReveal
 import com.prauga.pvot.designsystem.theme.PvotSpacing
 import java.util.Locale
+import kotlinx.coroutines.delay
 import org.prauga.equalizer.R
 import org.prauga.equalizer.data.PresetJson
 import org.prauga.equalizer.di.AppContainer
@@ -61,6 +65,7 @@ import org.prauga.equalizer.dsp.withTargetGain
 import org.prauga.equalizer.ui.components.BUILT_IN_CURVES
 import org.prauga.equalizer.ui.components.EqCurve
 import org.prauga.equalizer.ui.components.EqSlider
+import org.prauga.equalizer.ui.components.UndoBar
 import org.prauga.equalizer.ui.components.ValuePill
 import org.prauga.equalizer.ui.screens.equalizer.EqualizerViewModel
 
@@ -85,6 +90,14 @@ fun PresetsScreen(container: AppContainer, modifier: Modifier = Modifier) {
     var pastedJson by remember { mutableStateOf("") }
     var importFailed by remember { mutableStateOf(false) }
 
+    val undoAction by viewModel.undoAction.collectAsStateWithLifecycle()
+    LaunchedEffect(undoAction) {
+        if (undoAction != null) {
+            delay(6_000)
+            viewModel.dismissUndo()
+        }
+    }
+
     val openPreset = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri ->
@@ -95,8 +108,9 @@ fun PresetsScreen(container: AppContainer, modifier: Modifier = Modifier) {
         if (text == null || !viewModel.importPreset(text)) importFailed = true
     }
 
+    Box(modifier = modifier.fillMaxSize()) {
     PvotScreen(
-        modifier = modifier,
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PvotScreenDefaults.contentPadding(
             top = PvotScreenDefaults.TopPadding +
                 WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -192,6 +206,19 @@ fun PresetsScreen(container: AppContainer, modifier: Modifier = Modifier) {
                     }
                 },
                 modifier = Modifier.pvotReveal(9 + index)
+            )
+        }
+    }
+
+        if (undoAction == EqualizerViewModel.UndoAction.PRESET_DELETED) {
+            UndoBar(
+                message = stringResource(R.string.undo_preset_deleted),
+                onUndo = viewModel::undo,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = PvotSpacing.L)
+                    .padding(bottom = 108.dp)
+                    .fillMaxWidth()
             )
         }
     }
@@ -408,7 +435,13 @@ fun PresetsScreen(container: AppContainer, modifier: Modifier = Modifier) {
                         onTargetGain = { id, target ->
                             editProfile = editProfile.withTargetGain(id, target)
                         },
-                        modifier = Modifier.padding(horizontal = PvotSpacing.L)
+                        onResetBand = { id ->
+                            editProfile = editProfile.withTargetGain(id, 0.0)
+                        },
+                        modifier = Modifier.padding(horizontal = PvotSpacing.L),
+                        height = with(LocalConfiguration.current) {
+                            (screenHeightDp * 0.32f).dp.coerceIn(200.dp, 330.dp)
+                        }
                     )
                     Row(
                         modifier = Modifier

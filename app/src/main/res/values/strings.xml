@@ -27,12 +27,25 @@
     <!-- The ongoing notification the foreground service needs -->
     <string name="engine_notification_channel">Equalizer</string>
     <string name="engine_notification_channel_description">Shows while the equalizer is running.</string>
+    <string name="engine_action_turn_off">Turn off</string>
     <string name="engine_notification_title">Equalizer is on</string>
     <string name="engine_notification_waiting">Waiting for an app to share its audio</string>
     <string name="engine_notification_connected">Equalizing %1$s</string>
     <string name="engine_notification_failed">Unavailable: %1$s</string>
 
     <!-- Presets -->
+    <string name="action_undo">Undo</string>
+    <string name="undo_preset_deleted">Preset deleted</string>
+    <string name="undo_curve_reset">Curve reset to flat</string>
+    <string name="undo_preset_applied">Preset applied</string>
+    <string name="undo_band_reset">Band reset to 0 dB</string>
+    <string name="value_entry_label">Gain in dB</string>
+    <string name="value_entry_range">%1$s to %2$s dB</string>
+    <string name="value_entry_apply">Apply</string>
+    <string name="value_entry_preamp">Preamp gain</string>
+    <string name="value_entry_band">%1$s gain</string>
+    <string name="eq_clipping">Clipping %1$s dB</string>
+    <string name="eq_auto_preamp">Auto</string>
     <string name="presets_title">Presets</string>
     <string name="presets_save">Save preset</string>
     <string name="presets_section_builtin">Built in</string>
@@ -55,7 +68,7 @@
     <string name="presets_paste_hint">Paste the text you were sent</string>
     <string name="presets_import_action">Import</string>
     <string name="presets_import_failed_title">Could not import</string>
-    <string name="presets_import_failed_message">That file is not a PvotEqualizer preset.</string>
+    <string name="presets_import_failed_message">That is not a PvotEqualizer preset, or an AutoEQ parametric or graphic export.</string>
     <string name="presets_action_ok">OK</string>
     <string name="presets_subtitle">Preamp %1$s dB</string>
     <string name="presets_dialog_save_title">Save preset</string>
