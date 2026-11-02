@@ -69,6 +69,18 @@ app/src/main/java/org/prauga/equalizer/
 - The curve is drawn from the same numbers sent to the engine. Do not add a second source of truth
   for "what the EQ is doing".
 
+## Measured on the S23 (debug build)
+
+Keep these in mind before changing `dsp/`:
+
+- A fit is **~2.5 ms** warm and **~10.5 ms** on the first call in a fresh process (class loading and
+  JIT). The cold number is what a user's first drag pays; warm the fit when the screen opens.
+- Fitting accuracy, worst error against the analytic curve, 128 bands: **0.14 dB** for a musical
+  six-band profile and **0.40 dB** at Q 10.
+- A 512-point sampling grid is not enough: a Q 8 bell degrades to 1.32 dB. It is 1024 for a reason.
+- Trigonometry is computed per frequency, not per band per frequency, and cutoff placement uses a
+  priority queue rather than rescanning spans. Both were needed to get from 8.7 ms to 2.5 ms.
+
 ## Toolchain
 
 AGP 9.5.0, Kotlin 2.4.21, Java 21, Gradle 9.6.1, compile SDK 37.1, target SDK 36, min SDK 28

@@ -22,7 +22,9 @@ import com.prauga.pvot.designsystem.components.PvotScreen
 import com.prauga.pvot.designsystem.components.PvotScreenDefaults
 import com.prauga.pvot.designsystem.motion.pvotReveal
 import com.prauga.pvot.designsystem.theme.PvotSpacing
+import org.prauga.equalizer.BuildConfig
 import org.prauga.equalizer.R
+import org.prauga.equalizer.ui.components.FitPreview
 
 /**
  * The EQ screen: the curve, its bands and the power switch.
@@ -111,6 +113,29 @@ fun EqualizerScreen(modifier: Modifier = Modifier) {
                         message = stringResource(R.string.eq_bands_empty_message),
                         modifier = Modifier.padding(top = PvotSpacing.XS)
                     )
+                }
+            }
+        }
+        // Temporary: lets the DSP fit be judged by eye on a device before the engine lands.
+        if (BuildConfig.DEBUG) {
+            item {
+                PvotCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .pvotReveal(4)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(PvotSpacing.L)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.preview_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        FitPreview(modifier = Modifier.padding(top = PvotSpacing.S))
+                    }
                 }
             }
         }

@@ -1,5 +1,8 @@
 package org.prauga.equalizer.dsp
 
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 import org.prauga.equalizer.domain.EqProfile
 
 /**
@@ -28,5 +31,28 @@ class ProfileResponse(
             db += Biquad.dbAt(coefficients, frequencyHz, sampleRateHz)
         }
         return db
+    }
+
+    /**
+     * The response at every frequency in [frequencies], in decibels.
+     *
+     * Equivalent to calling [dbAt] in a loop, but the trigonometry is done once per frequency rather
+     * than once per band and frequency. Fitting samples the curve on a thousand points, so this is
+     * the difference between a refit that keeps up with a drag and one that does not.
+     */
+    fun curve(frequencies: DoubleArray): DoubleArray {
+        val result = DoubleArray(frequencies.size)
+        val nyquist = sampleRateHz * 0.5
+        for (index in frequencies.indices) {
+            val w = 2.0 * PI * frequencies[index].coerceIn(0.0, nyquist) / sampleRateHz
+            val cosW = cos(w)
+            val sinW = sin(w)
+            var db = preampDb
+            for (coefficients in filters) {
+                db += Biquad.dbAtRotation(coefficients, cosW, sinW)
+            }
+            result[index] = db
+        }
+        return result
     }
 }

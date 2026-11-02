@@ -117,10 +117,20 @@ object Biquad {
     fun dbAt(coefficients: BiquadCoefficients, frequencyHz: Double, sampleRateHz: Double): Double {
         val fs = sampleRateHz.coerceAtLeast(8_000.0)
         val w = 2.0 * PI * frequencyHz.coerceIn(0.0, fs * 0.5) / fs
-        val cosW = cos(w)
-        val sinW = sin(w)
-        val cos2W = cos(2.0 * w)
-        val sin2W = sin(2.0 * w)
+        return dbAtRotation(coefficients, cos(w), sin(w))
+    }
+
+    /**
+     * The magnitude response from a precomputed rotation, in decibels.
+     *
+     * A profile has to be evaluated at hundreds of frequencies, and every band turns into the same
+     * four trigonometry calls; doing them once per frequency instead of once per band and frequency
+     * is what makes a refit fit inside a frame on a phone. The double-angle terms are derived rather
+     * than asked for.
+     */
+    fun dbAtRotation(coefficients: BiquadCoefficients, cosW: Double, sinW: Double): Double {
+        val cos2W = cosW * cosW - sinW * sinW
+        val sin2W = 2.0 * sinW * cosW
 
         // H(e^jw) = (b0 + b1 e^-jw + b2 e^-2jw) / (1 + a1 e^-jw + a2 e^-2jw)
         val numeratorReal = coefficients.b0 + coefficients.b1 * cosW + coefficients.b2 * cos2W
