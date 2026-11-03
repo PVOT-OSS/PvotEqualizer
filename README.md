@@ -9,18 +9,18 @@ what you see is what you hear.
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/equalizer.png" alt="Equalizer tab with the curve, preamp and band editor" width="30%">
+  <img src="docs/screenshots/equalizer.png" alt="Equalizer tab with the curve, preamp and band editor" width="220" height="469">
   &nbsp;
-  <img src="docs/screenshots/curve.png" alt="Ten-band curve with clipping warning and band editor" width="30%">
+  <img src="docs/screenshots/curve.png" alt="Ten-band curve with clipping warning and band editor" width="220" height="469">
   &nbsp;
-  <img src="docs/screenshots/preset-picker.png" alt="Preset picker sheet" width="30%">
+  <img src="docs/screenshots/preset-picker.png" alt="Preset picker sheet" width="220" height="469">
 </p>
 <p align="center">
-  <img src="docs/screenshots/presets.png" alt="Presets tab with built-in and saved presets" width="30%">
+  <img src="docs/screenshots/presets.png" alt="Presets tab with built-in and saved presets" width="220" height="469">
   &nbsp;
-  <img src="docs/screenshots/import.png" alt="Import preset sheet: from a file or pasted JSON" width="30%">
+  <img src="docs/screenshots/import.png" alt="Import preset sheet: from a file or pasted JSON" width="220" height="469">
   &nbsp;
-  <img src="docs/screenshots/settings.png" alt="Settings tab" width="30%">
+  <img src="docs/screenshots/settings.png" alt="Settings tab" width="220" height="469">
 </p>
 
 ## Status
