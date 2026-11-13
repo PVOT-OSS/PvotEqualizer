@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Launcher icon colours from the light Pvot palette; values-night holds the dark ones. -->
+<!-- Launcher icon colours from the light Pvot palette, on the white tile in light and dark mode alike. -->
 <resources>
     <color name="ic_launcher_background">#FFFFFFFF</color>
     <color name="ic_launcher_bars">#FFCFC7FF</color>
