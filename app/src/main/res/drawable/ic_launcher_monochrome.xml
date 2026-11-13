@@ -1,23 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Themed-icon layer: the curve alone. The bars would merge into a single silhouette once the
-  system tints it, so they are dropped rather than left as noise.
+  Themed-icon layer: the same headphones and bars in one colour; the bars stand apart from the
+  cups, so they still read once the system tints the layer.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:pathData="M31.6,60.6 C34.2,58 42.3,44.5 47.4,44.8 C52.5,45 57.1,61.5 61.9,61.9 C66.8,62.4 74,49.8 76.4,47.4"
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="5"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
-    <path
-        android:pathData="M42.4,44.8a5,5 0 1,0 10,0a5,5 0 1,0 -10,0"
-        android:fillColor="#FFFFFFFF" />
-    <path
-        android:pathData="M56.9,61.9a5,5 0 1,0 10,0a5,5 0 1,0 -10,0"
-        android:fillColor="#FFFFFFFF" />
+    <group
+        android:scaleX="0.90909"
+        android:scaleY="0.90909"
+        android:translateX="54.0000"
+        android:translateY="50.0227">
+        <path
+            android:pathData="M-17,7A17,17 0 0,1 17,7"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="4.5"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M-17.500,2.000L-15.500,2.000A4.5,4.5 0 0,1 -11.000,6.500L-11.000,16.500A4.5,4.5 0 0,1 -15.500,21.000L-17.500,21.000A4.5,4.5 0 0,1 -22.000,16.500L-22.000,6.500A4.5,4.5 0 0,1 -17.500,2.000Z" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M15.500,2.000L17.500,2.000A4.5,4.5 0 0,1 22.000,6.500L22.000,16.500A4.5,4.5 0 0,1 17.500,21.000L15.500,21.000A4.5,4.5 0 0,1 11.000,16.500L11.000,6.500A4.5,4.5 0 0,1 15.500,2.000Z" />
+        <path
+            android:pathData="M-5,15L-5,9M0,15L0,3M5,15L5,10"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="3.4"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+    </group>
 </vector>
