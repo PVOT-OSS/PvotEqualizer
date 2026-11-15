@@ -65,6 +65,12 @@ export ANDROID_HOME=$HOME/Library/Android/sdk
 
 JDK 21, Android SDK 37.1. The design system is the `PvotLib/` submodule, built as an included build.
 
+## Privacy
+
+Equalizer collects nothing and has no internet permission. See [PrivacyPolicy.md](PrivacyPolicy.md).
+The store listing lives in `fastlane/metadata/android/en-US/` and the F-Droid recipe in
+`fdroid/metadata/`.
+
 ## Licence
 
 GPL-3.0. See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
