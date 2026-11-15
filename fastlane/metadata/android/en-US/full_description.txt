@@ -1,0 +1,20 @@
+Equalizer lets you shape your sound by dragging a curve. Pull a band up or down with your finger, or tap it and type an exact value. What you see on the curve is what the audio engine applies.
+
+Shape the curve
+• Six bands in simple mode, ten in advanced mode, each mode keeping its own curve
+• Drag a band on the curve or fine-tune it in the band editor
+• A preamp with a clipping warning and one-tap auto preamp
+• Undo for resetting the curve, applying a preset, zeroing a band or deleting a preset
+
+Presets
+• Built-in curves: Flat, Bass, Vocal and Treble
+• Save, rename and share your own
+• Import from a file or pasted text: Equalizer's own presets and AutoEQ ParametricEQ.txt and GraphicEQ.txt
+
+Honest about what it reaches
+Android gives apps no way to equalize all audio without root. Equalizer works with players that hand their audio to equalizers, such as Spotify and Poweramp. Apps that don't, such as YouTube and Chrome, are not affected, and the app tells you when music is playing that it can't reach.
+
+Private and open
+• No ads, no accounts, no analytics, no tracking
+• No internet permission and no microphone: your presets stay on your phone
+• Free and open source under the GPL-3.0: github.com/PVOT-OSS/PvotEqualizer
