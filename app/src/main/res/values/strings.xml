@@ -78,6 +78,7 @@
     <string name="presets_section_builtin">Built in</string>
     <string name="presets_section_saved">Your presets</string>
     <string name="cd_more_options">More options</string>
+    <string name="cd_power">Equalizer on</string>
     <string name="cd_curve">Equalizer curve, %1$s selected. %2$s</string>
     <string name="cd_curve_band">%1$s %2$s dB</string>
     <string name="action_select_band">Select %1$s</string>
