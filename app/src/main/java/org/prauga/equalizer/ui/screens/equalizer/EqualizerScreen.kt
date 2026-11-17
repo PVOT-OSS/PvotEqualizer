@@ -99,6 +99,7 @@ fun EqualizerScreen(preferences: AppPreferences, modifier: Modifier = Modifier) 
     val presets by viewModel.presets.collectAsStateWithLifecycle()
     val activePresetName by viewModel.activePresetName.collectAsStateWithLifecycle()
     val previewPlaying by viewModel.previewPlaying.collectAsStateWithLifecycle()
+    val outputRoute = rememberOutputRoute()
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { viewModel.stopPreview() }
     DisposableEffect(Unit) { onDispose { viewModel.stopPreview() } }
     var presetPickerVisible by remember { mutableStateOf(false) }
@@ -205,6 +206,11 @@ fun EqualizerScreen(preferences: AppPreferences, modifier: Modifier = Modifier) 
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = PvotSpacing.XS)
+                    )
+                    Text(
+                        text = stringResource(R.string.eq_route, stringResource(outputRoute)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     PvotButton(
                         text = stringResource(

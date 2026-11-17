@@ -23,6 +23,11 @@
     <string name="eq_preamp">Preamp</string>
 
     <string name="eq_db_value">%1$s dB</string>
+    <string name="eq_route">Output: %1$s</string>
+    <string name="eq_route_speaker">phone speaker</string>
+    <string name="eq_route_wired">wired headphones</string>
+    <string name="eq_route_usb">USB audio</string>
+    <string name="eq_route_bluetooth">Bluetooth</string>
     <string name="eq_preview">Play test sound</string>
     <string name="eq_preview_stop">Stop test sound</string>
     <string name="eq_notifications_off">Notifications are off, so there is no sign outside the app that the equalizer is running, and no way to turn it off from the shade.</string>
