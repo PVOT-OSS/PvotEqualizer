@@ -15,6 +15,6 @@ PvotEqualizer's audio design was studied against two GPL-3.0 projects, with than
 - [Equalizer314](https://github.com/bearinmindcat/Equalizer314) — the `DynamicsProcessing` band
   model, its per-session handling and the limits of the public pre-EQ API.
 
-No code from either project is included yet. `app/src/main/java/org/prauga/equalizer/dsp/` is an
+No code from either project is included yet. `core/dsp/` is an
 independent implementation. If code is ever ported from one of them, its copyright and license
 header stays in the file and the credit moves here.

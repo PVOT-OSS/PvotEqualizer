@@ -45,8 +45,8 @@ Not built yet: restoring the EQ after a reboot, a Quick Settings tile, and an al
   changes that part of the curve.
 - **Honest fit.** `DynamicsProcessing` only takes cutoff/gain bands, so the curve is fitted onto up
   to 128 engine bands. Measured worst-case error is 0.14 dB for a typical six-band curve.
-- **`dsp/` is pure Kotlin.** Biquad coefficients, magnitude response and the engine band fit have no
-  `android.*` imports and are covered by JVM tests, because that maths decides whether the sound
+- **`:core:dsp` is pure Kotlin.** Biquad coefficients, magnitude response and the engine band fit live
+  in a plain JVM module, so they cannot import `android.*`, and are covered by JVM tests, because that maths decides whether the sound
   matches the screen.
 - **Honest about coverage.** Android gives no rootless way to equalize every app. PvotEqualizer
   attaches to the audio sessions that apps hand to the standard effect-control broadcast, so players
