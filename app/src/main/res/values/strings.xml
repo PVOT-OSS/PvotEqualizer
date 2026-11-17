@@ -23,6 +23,8 @@
     <string name="eq_preamp">Preamp</string>
 
     <string name="eq_db_value">%1$s dB</string>
+    <string name="eq_preview">Play test sound</string>
+    <string name="eq_preview_stop">Stop test sound</string>
 
     <string name="intro_title">How Equalizer works</string>
     <string name="intro_sessions">It changes the sound of apps that share their audio session with Android, such as most music players. Apps that do not, such as many video and browser apps, stay as they are unless you turn on All apps in Settings.</string>

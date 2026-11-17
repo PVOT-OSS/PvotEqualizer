@@ -31,6 +31,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,9 +46,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.prauga.pvot.designsystem.components.PvotBottomSheet
 import com.prauga.pvot.designsystem.components.PvotCard
+import com.prauga.pvot.designsystem.components.button.PvotButton
+import com.prauga.pvot.designsystem.components.button.PvotButtonStyle
 import com.prauga.pvot.designsystem.components.PvotScreen
 import com.prauga.pvot.designsystem.components.PvotScreenDefaults
 import com.prauga.pvot.designsystem.components.PvotSheetItem
@@ -90,6 +95,9 @@ fun EqualizerScreen(preferences: AppPreferences, modifier: Modifier = Modifier) 
     val selectedBandId by viewModel.selectedBandId.collectAsStateWithLifecycle()
     val presets by viewModel.presets.collectAsStateWithLifecycle()
     val activePresetName by viewModel.activePresetName.collectAsStateWithLifecycle()
+    val previewPlaying by viewModel.previewPlaying.collectAsStateWithLifecycle()
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { viewModel.stopPreview() }
+    DisposableEffect(Unit) { onDispose { viewModel.stopPreview() } }
     var presetPickerVisible by remember { mutableStateOf(false) }
 
     val mode = if (preferences.advancedMode) EqMode.ADVANCED else EqMode.SIMPLE
@@ -186,6 +194,13 @@ fun EqualizerScreen(preferences: AppPreferences, modifier: Modifier = Modifier) 
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = PvotSpacing.XS)
+                    )
+                    PvotButton(
+                        text = stringResource(
+                            if (previewPlaying) R.string.eq_preview_stop else R.string.eq_preview
+                        ),
+                        onClick = viewModel::togglePreview,
+                        style = PvotButtonStyle.Text
                     )
                 }
                 Switch(checked = status.enabled, onCheckedChange = viewModel::setEnabled)

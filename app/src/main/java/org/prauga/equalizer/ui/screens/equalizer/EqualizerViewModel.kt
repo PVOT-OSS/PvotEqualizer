@@ -1,5 +1,6 @@
 package org.prauga.equalizer.ui.screens.equalizer
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +16,7 @@ import kotlinx.coroutines.launch
 import org.prauga.equalizer.AppPreferences
 import org.prauga.equalizer.audio.EngineStatus
 import org.prauga.equalizer.audio.EqController
+import org.prauga.equalizer.audio.PreviewPlayer
 import org.prauga.equalizer.data.AutoEqImport
 import org.prauga.equalizer.data.EqStateStore
 import org.prauga.equalizer.data.PresetJson
@@ -36,8 +38,11 @@ import org.prauga.equalizer.core.dsp.withTargetGain
 class EqualizerViewModel @Inject constructor(
     private val store: EqStateStore,
     private val preferences: AppPreferences,
-    private val equalizer: EqController
+    private val equalizer: EqController,
+    private val preview: PreviewPlayer
 ) : ViewModel() {
+
+    val previewPlaying: StateFlow<Boolean> = preview.playing
 
     val status: StateFlow<EngineStatus> = equalizer.engine.status
 
@@ -78,6 +83,25 @@ class EqualizerViewModel @Inject constructor(
     }
 
     fun setGlobalMode(global: Boolean) = equalizer.setGlobal(global)
+
+    fun togglePreview() {
+        viewModelScope.launch(Dispatchers.Default) {
+            if (preview.playing.value) {
+                preview.stop()
+            } else {
+                runCatching { preview.start() }
+                    .onFailure { Log.w(TAG, "preview could not start", it) }
+            }
+        }
+    }
+
+    fun stopPreview() {
+        viewModelScope.launch(Dispatchers.Default) { preview.stop() }
+    }
+
+    override fun onCleared() {
+        preview.stop()
+    }
 
     fun selectBand(id: Int) {
         _selectedBandId.value = id
@@ -304,3 +328,5 @@ class EqualizerViewModel @Inject constructor(
         private const val SAVE_DEBOUNCE_MS = 400L
     }
 }
+
+private const val TAG = "EqViewModel"
