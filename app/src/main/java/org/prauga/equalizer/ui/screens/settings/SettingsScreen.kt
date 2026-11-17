@@ -17,25 +17,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.prauga.pvot.coreui.PvotSectionHeader
 import com.prauga.pvot.designsystem.components.PvotCard
 import com.prauga.pvot.designsystem.components.PvotScreen
 import com.prauga.pvot.designsystem.components.PvotScreenDefaults
 import com.prauga.pvot.designsystem.motion.pvotReveal
 import com.prauga.pvot.designsystem.theme.PvotSpacing
+import org.prauga.equalizer.AppPreferences
 import org.prauga.equalizer.BuildConfig
 import org.prauga.equalizer.R
 import org.prauga.equalizer.audio.EngineStatus
-import org.prauga.equalizer.di.AppContainer
 import org.prauga.equalizer.ui.screens.equalizer.EqualizerViewModel
 
 @Composable
-fun SettingsScreen(container: AppContainer, modifier: Modifier = Modifier) {
-    val viewModel: EqualizerViewModel = viewModel(factory = EqualizerViewModel.factory(container))
+fun SettingsScreen(preferences: AppPreferences, modifier: Modifier = Modifier) {
+    val viewModel: EqualizerViewModel = hiltViewModel()
     val status by viewModel.status.collectAsStateWithLifecycle()
-    val preferences = container.preferences
 
     PvotScreen(
         modifier = modifier,

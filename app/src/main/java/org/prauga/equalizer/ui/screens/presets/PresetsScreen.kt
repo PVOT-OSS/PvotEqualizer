@@ -39,8 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.prauga.pvot.coreui.PvotEmptyContent
 import com.prauga.pvot.coreui.PvotSectionHeader
 import com.prauga.pvot.designsystem.components.PvotBottomSheet
@@ -58,7 +58,6 @@ import java.util.Locale
 import kotlinx.coroutines.delay
 import org.prauga.equalizer.R
 import org.prauga.equalizer.data.PresetJson
-import org.prauga.equalizer.di.AppContainer
 import org.prauga.equalizer.domain.EqProfile
 import org.prauga.equalizer.domain.Preset
 import org.prauga.equalizer.dsp.withTargetGain
@@ -77,8 +76,8 @@ private data class NameTarget(val presetId: String?, val initial: String)
  * it was saved with, rather than shrinking the editor into a sheet.
  */
 @Composable
-fun PresetsScreen(container: AppContainer, modifier: Modifier = Modifier) {
-    val viewModel: EqualizerViewModel = viewModel(factory = EqualizerViewModel.factory(container))
+fun PresetsScreen(modifier: Modifier = Modifier) {
+    val viewModel: EqualizerViewModel = hiltViewModel()
     val presets by viewModel.presets.collectAsStateWithLifecycle()
     val context = LocalContext.current
 

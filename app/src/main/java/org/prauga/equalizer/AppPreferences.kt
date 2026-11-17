@@ -7,10 +7,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 import com.prauga.pvot.designsystem.effects.PvotGlassDefaults
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 import org.prauga.equalizer.domain.EqMode
 
 /** The app's settings, kept in SharedPreferences and observable from Compose. */
-class AppPreferences(context: Context) {
+@Singleton
+class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
 
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

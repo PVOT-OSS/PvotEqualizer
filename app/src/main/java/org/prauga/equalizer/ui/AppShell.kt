@@ -24,8 +24,8 @@ import com.prauga.pvot.designsystem.effects.pvotGlassBackdrop
 import com.prauga.pvot.designsystem.effects.rememberPvotGlassBackdrop
 import com.prauga.pvot.designsystem.navigation.PvotNavBar
 import com.prauga.pvot.designsystem.navigation.PvotTabItem
+import org.prauga.equalizer.AppPreferences
 import org.prauga.equalizer.R
-import org.prauga.equalizer.di.AppContainer
 import org.prauga.equalizer.ui.screens.equalizer.EqualizerScreen
 import org.prauga.equalizer.ui.screens.presets.PresetsScreen
 import org.prauga.equalizer.ui.screens.settings.SettingsScreen
@@ -38,7 +38,7 @@ private const val ScrollThreshold = 4f
  * underneath it.
  */
 @Composable
-fun AppShell(container: AppContainer) {
+fun AppShell(preferences: AppPreferences) {
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var navCompact by rememberSaveable { mutableStateOf(false) }
     // Swiping up through a list shrinks the nav bar out of the way; swiping back down restores it.
@@ -102,9 +102,9 @@ fun AppShell(container: AppContainer) {
                 .padding(top = innerPadding.calculateTopPadding())
 
             when (selectedTab) {
-                0 -> EqualizerScreen(container, screenModifier)
-                1 -> PresetsScreen(container, screenModifier)
-                else -> SettingsScreen(container, screenModifier)
+                0 -> EqualizerScreen(preferences, screenModifier)
+                1 -> PresetsScreen(screenModifier)
+                else -> SettingsScreen(preferences, screenModifier)
             }
         }
     }

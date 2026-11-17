@@ -5,23 +5,34 @@ import androidx.compose.runtime.CompositionLocalProvider
 import com.prauga.pvot.designsystem.effects.LocalPvotGlassIntensity
 import com.prauga.pvot.designsystem.platform.PvotBaseActivity
 import com.prauga.pvot.designsystem.theme.PvotAppTheme
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import org.prauga.equalizer.audio.EqController
+import org.prauga.equalizer.data.EqStateStore
 import org.prauga.equalizer.ui.AppShell
 
+@AndroidEntryPoint
 class MainActivity : PvotBaseActivity() {
+
+    @Inject lateinit var preferences: AppPreferences
+
+    @Inject lateinit var stateStore: EqStateStore
+
+    @Inject lateinit var equalizer: EqController
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val container = (application as PvotEqualizerApp).container
         // The equalizer was running when the app was last closed: bring it back without making the
         // user find the switch again. Boot restore is a separate, later step.
-        if (container.stateStore.loadPowerOn()) {
-            container.equalizer.setEnabled(true)
+        if (stateStore.loadPowerOn()) {
+            equalizer.setEnabled(true)
         }
         setPvotContent {
             CompositionLocalProvider(
-                LocalPvotGlassIntensity provides container.preferences.glassIntensity
+                LocalPvotGlassIntensity provides preferences.glassIntensity
             ) {
                 PvotAppTheme {
-                    AppShell(container)
+                    AppShell(preferences)
                 }
             }
         }

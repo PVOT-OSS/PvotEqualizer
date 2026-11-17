@@ -44,8 +44,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.prauga.pvot.designsystem.components.PvotBottomSheet
 import com.prauga.pvot.designsystem.components.PvotCard
 import com.prauga.pvot.designsystem.components.PvotScreen
@@ -57,9 +57,9 @@ import java.util.Locale
 import kotlin.math.exp
 import kotlin.math.ln
 import kotlinx.coroutines.delay
+import org.prauga.equalizer.AppPreferences
 import org.prauga.equalizer.R
 import org.prauga.equalizer.audio.EngineStatus
-import org.prauga.equalizer.di.AppContainer
 import org.prauga.equalizer.domain.EqMode
 import org.prauga.equalizer.domain.EqProfile
 import org.prauga.equalizer.dsp.ProfileResponse
@@ -81,8 +81,8 @@ private const val STEP_DB = 0.1
  * with the slider, or stepped a tenth of a decibel at a time.
  */
 @Composable
-fun EqualizerScreen(container: AppContainer, modifier: Modifier = Modifier) {
-    val viewModel: EqualizerViewModel = viewModel(factory = EqualizerViewModel.factory(container))
+fun EqualizerScreen(preferences: AppPreferences, modifier: Modifier = Modifier) {
+    val viewModel: EqualizerViewModel = hiltViewModel()
     val status by viewModel.status.collectAsStateWithLifecycle()
     val profile by viewModel.profile.collectAsStateWithLifecycle()
     val selectedBandId by viewModel.selectedBandId.collectAsStateWithLifecycle()
@@ -90,7 +90,6 @@ fun EqualizerScreen(container: AppContainer, modifier: Modifier = Modifier) {
     val activePresetName by viewModel.activePresetName.collectAsStateWithLifecycle()
     var presetPickerVisible by remember { mutableStateOf(false) }
 
-    val preferences = container.preferences
     val mode = if (preferences.advancedMode) EqMode.ADVANCED else EqMode.SIMPLE
     val selectedBand = profile.bands.firstOrNull { it.id == selectedBandId } ?: profile.bands.first()
     // What is heard at the selected band's frequency, which is where its handle sits.

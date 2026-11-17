@@ -1,11 +1,10 @@
 package org.prauga.equalizer.ui.screens.equalizer
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.UUID
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -13,10 +12,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.prauga.equalizer.AppPreferences
 import org.prauga.equalizer.audio.EngineStatus
+import org.prauga.equalizer.audio.EqController
 import org.prauga.equalizer.data.AutoEqImport
+import org.prauga.equalizer.data.EqStateStore
 import org.prauga.equalizer.data.PresetJson
-import org.prauga.equalizer.di.AppContainer
 import org.prauga.equalizer.domain.EqBands
 import org.prauga.equalizer.domain.EqMode
 import org.prauga.equalizer.domain.EqProfile
@@ -31,13 +32,16 @@ import org.prauga.equalizer.dsp.withTargetGain
  * app no longer forgets the equalizer on process death. Both screens share one instance, which is
  * why applying a preset on the presets tab immediately updates the curve on the other.
  */
-class EqualizerViewModel(private val container: AppContainer) : ViewModel() {
+@HiltViewModel
+class EqualizerViewModel @Inject constructor(
+    private val store: EqStateStore,
+    private val preferences: AppPreferences,
+    private val equalizer: EqController
+) : ViewModel() {
 
-    private val store = container.stateStore
+    val status: StateFlow<EngineStatus> = equalizer.engine.status
 
-    val status: StateFlow<EngineStatus> = container.engine.status
-
-    private var mode: EqMode = container.preferences.mode
+    private var mode: EqMode = preferences.mode
 
     private val _profile = MutableStateFlow(store.loadProfile(mode))
     val profile: StateFlow<EqProfile> = _profile.asStateFlow()
@@ -62,7 +66,7 @@ class EqualizerViewModel(private val container: AppContainer) : ViewModel() {
     init {
         // Hand the restored curve to the engine straight away, so a restored power state applies
         // it without waiting for an edit.
-        container.equalizer.setProfile(_profile.value)
+        equalizer.setProfile(_profile.value)
         viewModelScope.launch(Dispatchers.Default) {
             DpBandFit.fit(_profile.value, SAMPLE_RATE_HZ)
         }
@@ -70,7 +74,7 @@ class EqualizerViewModel(private val container: AppContainer) : ViewModel() {
 
     fun setEnabled(enabled: Boolean) {
         store.savePowerOn(enabled)
-        container.equalizer.setEnabled(enabled)
+        equalizer.setEnabled(enabled)
     }
 
     fun selectBand(id: Int) {
@@ -226,7 +230,7 @@ class EqualizerViewModel(private val container: AppContainer) : ViewModel() {
     private fun switchTo(mode: EqMode) {
         if (mode == this.mode) return
         this.mode = mode
-        container.preferences.updateAdvancedMode(mode == EqMode.ADVANCED)
+        preferences.updateAdvancedMode(mode == EqMode.ADVANCED)
     }
 
     private fun applyPresetToGrid(preset: Preset) {
@@ -279,7 +283,7 @@ class EqualizerViewModel(private val container: AppContainer) : ViewModel() {
 
     private fun commit(profile: EqProfile) {
         _profile.value = profile
-        container.equalizer.setProfile(profile)
+        equalizer.setProfile(profile)
         // A drag fires this many times a second; write once the finger has settled.
         saveJob?.cancel()
         saveJob = viewModelScope.launch {
@@ -296,9 +300,5 @@ class EqualizerViewModel(private val container: AppContainer) : ViewModel() {
     companion object {
         private const val SAMPLE_RATE_HZ = 48_000.0
         private const val SAVE_DEBOUNCE_MS = 400L
-
-        fun factory(container: AppContainer): ViewModelProvider.Factory = viewModelFactory {
-            initializer { EqualizerViewModel(container) }
-        }
     }
 }

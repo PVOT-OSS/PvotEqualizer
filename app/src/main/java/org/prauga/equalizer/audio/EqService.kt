@@ -17,14 +17,16 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.prauga.equalizer.MainActivity
-import org.prauga.equalizer.PvotEqualizerApp
 import org.prauga.equalizer.R
+import org.prauga.equalizer.data.EqStateStore
 
 /**
  * Keeps the equalizer alive while the app is in the background, and listens for music apps telling us
@@ -35,15 +37,20 @@ import org.prauga.equalizer.R
  * already registered inside a running service can attach an effect without starting anything. It also
  * means this only works once the user has turned the equalizer on, which is the behaviour we want.
  */
+@AndroidEntryPoint
 class EqService : Service() {
 
+    @Inject lateinit var engine: AudioEngine
+
+    @Inject lateinit var stateStore: EqStateStore
+
+    @Inject lateinit var equalizer: EqController
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    private lateinit var engine: AudioEngine
     private var sessionReceiver: BroadcastReceiver? = null
 
     override fun onCreate() {
         super.onCreate()
-        engine = (application as PvotEqualizerApp).container.engine
         createChannel()
         startForeground(NOTIFICATION_ID, buildNotification(engine.status.value))
         registerSessionReceiver()
@@ -55,9 +62,8 @@ class EqService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_TURN_OFF) {
             // Persist first: otherwise the app would switch itself back on the next launch.
-            val container = (application as PvotEqualizerApp).container
-            container.stateStore.savePowerOn(false)
-            container.equalizer.setEnabled(false)
+            stateStore.savePowerOn(false)
+            equalizer.setEnabled(false)
         }
         return START_STICKY
     }

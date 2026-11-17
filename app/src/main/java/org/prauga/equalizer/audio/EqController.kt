@@ -2,6 +2,9 @@ package org.prauga.equalizer.audio
 
 import android.content.Context
 import androidx.core.content.ContextCompat
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 import org.prauga.equalizer.domain.EqProfile
 
 /**
@@ -10,7 +13,11 @@ import org.prauga.equalizer.domain.EqProfile
  *
  * Callers are UI only; everything here is safe to call from the main thread.
  */
-class EqController(context: Context, val engine: AudioEngine) {
+@Singleton
+class EqController @Inject constructor(
+    @ApplicationContext context: Context,
+    val engine: AudioEngine
+) {
 
     private val appContext = context.applicationContext
 

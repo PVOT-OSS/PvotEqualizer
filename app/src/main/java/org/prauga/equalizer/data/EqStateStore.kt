@@ -3,6 +3,9 @@ package org.prauga.equalizer.data
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 import org.json.JSONArray
 import org.json.JSONObject
 import org.prauga.equalizer.domain.EqBands
@@ -17,7 +20,8 @@ import org.prauga.equalizer.domain.Preset
  * everything here is read once at startup and written a few times per minute at most. A malformed
  * payload is treated as "nothing saved" rather than crashing the app on launch.
  */
-class EqStateStore(context: Context) {
+@Singleton
+class EqStateStore @Inject constructor(@ApplicationContext context: Context) {
 
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
