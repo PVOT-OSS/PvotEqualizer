@@ -2,6 +2,7 @@ package org.prauga.equalizer.audio
 
 import android.media.audiofx.DynamicsProcessing
 import android.util.Log
+import kotlin.math.abs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -42,6 +43,7 @@ class DynamicsProcessingEngine(
     private val known = LinkedHashMap<Int, String?>()
     private val packages = mutableMapOf<Int, String>()
 
+    private var bandCount = ENGINE_BANDS
     private var profile: EqProfile = EqProfile.flat()
     private var fitted: DpFit? = null
     private var isEnabled = false
@@ -149,11 +151,19 @@ class DynamicsProcessingEngine(
      * @return whether the effect is now attached to [sessionId]
      */
     private fun createInstance(sessionId: Int, reportFailure: Boolean = true): Boolean {
+        if (instances.containsKey(sessionId)) return true
         var effect: DynamicsProcessing? = null
         var attached = false
         try {
             effect = DynamicsProcessing(PRIORITY, sessionId, buildConfig())
-            effect.setPreEqAllChannelsTo(eqFor(fitNow().bands))
+            val bands = fitNow().bands
+            effect.setPreEqAllChannelsTo(eqFor(bands))
+            if (bandCount > CLAMPED_BANDS && clampsBands(effect, bands)) {
+                Log.i(TAG, "effect HAL clamps pre-EQ to $CLAMPED_BANDS bands; refitting")
+                runCatching { effect.release() }
+                useClampedBandCount()
+                return instances.containsKey(sessionId)
+            }
             effect.setEnabled(!isBypassed)
             instances[sessionId] = effect
             failure = null
@@ -170,6 +180,24 @@ class DynamicsProcessingEngine(
         return attached
     }
 
+    /**
+     * Android 14+ effect HALs may cap pre-EQ at 32 bands, and the framework then clamps every higher
+     * band index to the last one instead of failing. Band [CLAMPED_BANDS] - 1 is then left holding
+     * whatever was written last, which reveals the cap.
+     */
+    private fun clampsBands(effect: DynamicsProcessing, bands: List<DpBand>): Boolean {
+        val probe = CLAMPED_BANDS - 1
+        val actual = effect.getPreEqBandByChannelIndex(0, probe).cutoffFrequency.toDouble()
+        return abs(actual - bands[probe].cutoffHz) > CUTOFF_TOLERANCE_HZ
+    }
+
+    private fun useClampedBandCount() {
+        bandCount = CLAMPED_BANDS
+        fitted = null
+        releaseInstances()
+        attachAll()
+    }
+
     private fun applyBands(sessionId: Int, bands: List<DpBand>) {
         val effect = instances[sessionId] ?: return
         runCatching { effect.setPreEqAllChannelsTo(eqFor(bands)) }
@@ -180,7 +208,7 @@ class DynamicsProcessingEngine(
         DynamicsProcessing.VARIANT_FAVOR_FREQUENCY_RESOLUTION,
         CHANNELS,
         /* preEqInUse = */ true,
-        /* preEqBandCount = */ ENGINE_BANDS,
+        /* preEqBandCount = */ bandCount,
         /* mbcInUse = */ false,
         /* mbcBandCount = */ 0,
         /* postEqInUse = */ false,
@@ -218,7 +246,7 @@ class DynamicsProcessingEngine(
         return eq
     }
 
-    private fun fitNow(): DpFit = fitted ?: DpBandFit.fit(profile, sampleRateHz, ENGINE_BANDS)
+    private fun fitNow(): DpFit = fitted ?: DpBandFit.fit(profile, sampleRateHz, bandCount)
         .also { fitted = it }
 
     private fun releaseInstances() {
@@ -250,6 +278,8 @@ private const val PRIORITY = 0
 private const val OUTPUT_MIX_SESSION = 0
 private const val CHANNELS = 2
 private const val ENGINE_BANDS = DpBandFit.DEFAULT_BAND_COUNT
+private const val CLAMPED_BANDS = 32
+private const val CUTOFF_TOLERANCE_HZ = 1.0
 private const val SAMPLE_RATE_HZ = 48_000.0
 
 private const val FRAME_DURATION_MS = 10f

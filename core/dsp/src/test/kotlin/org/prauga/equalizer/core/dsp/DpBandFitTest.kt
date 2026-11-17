@@ -97,6 +97,14 @@ class DpBandFitTest {
     }
 
     @Test
+    fun `a fit for a clamping effect HAL has exactly 32 bands`() {
+        val fit = DpBandFit.fit(musical(), sampleRate, bandCount = 32)
+        assertEquals(32, fit.bands.size)
+        val worst = worstError(fit, ProfileResponse(musical(), sampleRate))
+        assertTrue("worst error was $worst dB", worst <= 1.0)
+    }
+
+    @Test
     fun `a steep high frequency bell stays close`() {
         val profile = EqProfile(
             bands = listOf(ParametricBand(0, BandType.PEAK, 4_000.0, 8.0, 12.0))
