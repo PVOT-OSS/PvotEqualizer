@@ -77,6 +77,8 @@ class EqualizerViewModel @Inject constructor(
         equalizer.setEnabled(enabled)
     }
 
+    fun setGlobalMode(global: Boolean) = equalizer.setGlobal(global)
+
     fun selectBand(id: Int) {
         _selectedBandId.value = id
     }

@@ -11,13 +11,15 @@ import org.prauga.equalizer.core.model.EqProfile
  * @param sessions Audio sessions the effect is attached to right now
  * @param attachedPackages Apps whose audio is being equalized, as far as they told us
  * @param failure Why the engine could not start, if it could not
+ * @param global Whether the effect is on the whole output mix (session 0) instead of per app
  */
 data class EngineStatus(
     val enabled: Boolean = false,
     val bandCount: Int = 0,
     val sessions: Int = 0,
     val attachedPackages: List<String> = emptyList(),
-    val failure: String? = null
+    val failure: String? = null,
+    val global: Boolean = false
 )
 
 /**
@@ -39,6 +41,13 @@ interface AudioEngine {
 
     /** Attaches to an audio session, if the engine is on. */
     fun attach(sessionId: Int, packageName: String?)
+
+    /**
+     * Switches between one effect on the output mix (session 0, which reaches apps that never
+     * announce a session but is deprecated and not honoured by every device) and one per announced
+     * session. Never both, or announced sessions would be equalized twice.
+     */
+    fun setGlobal(global: Boolean)
 
     /** Releases the effect for an audio session that has closed. */
     fun detach(sessionId: Int)

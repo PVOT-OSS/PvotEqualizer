@@ -16,6 +16,7 @@
     <string name="eq_power_unshared">Music is playing, but its app has not shared its audio session. Pause and play again to connect it.</string>
     <string name="eq_power_connected">Equalizing %1$s</string>
     <string name="eq_power_failed">Engine unavailable: %1$s</string>
+    <string name="eq_power_global">Equalizing all audio (experimental). Some devices ignore this mode.</string>
 
     <string name="eq_preset">Preset</string>
     <string name="eq_preset_custom">Custom</string>
@@ -32,6 +33,7 @@
     <string name="engine_notification_waiting">Waiting for an app to share its audio</string>
     <string name="engine_notification_connected">Equalizing %1$s</string>
     <string name="engine_notification_failed">Unavailable: %1$s</string>
+    <string name="engine_notification_global">Equalizing all audio (experimental)</string>
 
     <string name="tile_label">Equalizer</string>
     <string name="tile_on">On</string>
@@ -99,6 +101,8 @@
     <string name="settings_engine_value_waiting">Waiting</string>
     <string name="settings_engine_value_failed">Failed</string>
     <string name="settings_engine_subtitle_off">Turn the equalizer on to start the engine.</string>
+    <string name="settings_global_title">All apps (experimental)</string>
+    <string name="settings_global_subtitle">Equalize the whole output instead of only apps that share their audio session. Uses an older Android mechanism that some devices ignore; turn it off if nothing changes.</string>
     <string name="settings_section_bands">Bands</string>
     <string name="settings_advanced_title">Advanced mode</string>
     <string name="settings_advanced_subtitle">Six bands by default, six to ten when advanced mode is on.</string>

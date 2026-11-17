@@ -43,6 +43,15 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
         advancedMode = enabled
     }
 
+    /** Whether the engine attaches to the whole output mix instead of announced sessions. */
+    var globalMode by mutableStateOf(prefs.getBoolean(KEY_GLOBAL_MODE, false))
+        private set
+
+    fun updateGlobalMode(enabled: Boolean) {
+        prefs.edit { putBoolean(KEY_GLOBAL_MODE, enabled) }
+        globalMode = enabled
+    }
+
     /** The editor's band allowance, derived from [advancedMode]. */
     val mode: EqMode
         get() = if (advancedMode) EqMode.ADVANCED else EqMode.SIMPLE
@@ -51,5 +60,6 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
         const val PREFS_NAME = "equalizer_preferences"
         const val KEY_LIQUID_GLASS = "liquid_glass"
         const val KEY_ADVANCED_MODE = "advanced_mode"
+        const val KEY_GLOBAL_MODE = "global_mode"
     }
 }

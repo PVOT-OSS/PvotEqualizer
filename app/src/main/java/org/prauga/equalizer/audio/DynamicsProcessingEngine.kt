@@ -45,25 +45,41 @@ class DynamicsProcessingEngine(
     private var profile: EqProfile = EqProfile.flat()
     private var fitted: DpFit? = null
     private var isEnabled = false
+    private var isGlobal = false
     private var failure: String? = null
 
     override fun setEnabled(enabled: Boolean) {
         scope.launch {
             isEnabled = enabled
             failure = null
-            if (enabled) {
-                // Re-attach to the sessions already playing instead of waiting for a broadcast that
-                // will never come: the player announced its session once, at the start.
-                Log.i(TAG, "enable: known sessions=${known.keys}")
-                for (sessionId in known.keys.toList()) {
-                    if (!createInstance(sessionId, reportFailure = false)) {
-                        known.remove(sessionId)
-                    }
-                }
-            } else {
-                releaseInstances()
-            }
+            if (enabled) attachAll() else releaseInstances()
             publish()
+        }
+    }
+
+    override fun setGlobal(global: Boolean) {
+        scope.launch {
+            if (isGlobal == global) return@launch
+            isGlobal = global
+            failure = null
+            releaseInstances()
+            if (isEnabled) attachAll()
+            publish()
+        }
+    }
+
+    private fun attachAll() {
+        if (isGlobal) {
+            createInstance(OUTPUT_MIX_SESSION)
+            return
+        }
+        // Re-attach to the sessions already playing instead of waiting for a broadcast that will
+        // never come: the player announced its session once, at the start.
+        Log.i(TAG, "enable: known sessions=${known.keys}")
+        for (sessionId in known.keys.toList()) {
+            if (!createInstance(sessionId, reportFailure = false)) {
+                known.remove(sessionId)
+            }
         }
     }
 
@@ -87,7 +103,7 @@ class DynamicsProcessingEngine(
             known[sessionId] = packageName ?: known[sessionId]
             Log.i(TAG, "attach session=$sessionId package=$packageName enabled=$isEnabled")
             if (packageName != null) packages[sessionId] = packageName
-            if (!isEnabled || instances.containsKey(sessionId)) {
+            if (!isEnabled || isGlobal || instances.containsKey(sessionId)) {
                 publish()
                 return@launch
             }
@@ -206,7 +222,8 @@ class DynamicsProcessingEngine(
             bandCount = fitted?.bands?.size ?: 0,
             sessions = instances.size,
             attachedPackages = instances.keys.mapNotNull(packages::get).distinct().sorted(),
-            failure = failure
+            failure = failure,
+            global = isGlobal
         )
     }
 
@@ -216,6 +233,7 @@ class DynamicsProcessingEngine(
 
 private const val TAG = "EqEngine"
 private const val PRIORITY = 0
+private const val OUTPUT_MIX_SESSION = 0
 private const val CHANNELS = 2
 private const val ENGINE_BANDS = DpBandFit.DEFAULT_BAND_COUNT
 private const val SAMPLE_RATE_HZ = 48_000.0

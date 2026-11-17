@@ -5,6 +5,7 @@ import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import org.prauga.equalizer.AppPreferences
 import org.prauga.equalizer.core.model.EqProfile
 
 /**
@@ -16,10 +17,15 @@ import org.prauga.equalizer.core.model.EqProfile
 @Singleton
 class EqController @Inject constructor(
     @ApplicationContext context: Context,
-    val engine: AudioEngine
+    val engine: AudioEngine,
+    private val preferences: AppPreferences
 ) {
 
     private val appContext = context.applicationContext
+
+    init {
+        engine.setGlobal(preferences.globalMode)
+    }
 
     fun setEnabled(enabled: Boolean) {
         if (enabled) {
@@ -32,4 +38,9 @@ class EqController @Inject constructor(
     }
 
     fun setProfile(profile: EqProfile) = engine.setProfile(profile)
+
+    fun setGlobal(global: Boolean) {
+        preferences.updateGlobalMode(global)
+        engine.setGlobal(global)
+    }
 }

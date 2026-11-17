@@ -121,6 +121,7 @@ class EqService : Service() {
         )
         val text = when {
             status.failure != null -> getString(R.string.engine_notification_failed, status.failure)
+            status.global && status.sessions > 0 -> getString(R.string.engine_notification_global)
             status.attachedPackages.isEmpty() -> getString(R.string.engine_notification_waiting)
             else -> getString(
                 R.string.engine_notification_connected,

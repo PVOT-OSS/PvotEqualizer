@@ -75,11 +75,22 @@ fun SettingsScreen(preferences: AppPreferences, modifier: Modifier = Modifier) {
             }
         }
         item {
+            SwitchCard(
+                title = stringResource(R.string.settings_global_title),
+                subtitle = stringResource(R.string.settings_global_subtitle),
+                checked = preferences.globalMode,
+                onCheckedChange = viewModel::setGlobalMode,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .pvotReveal(3)
+            )
+        }
+        item {
             PvotSectionHeader(
                 title = stringResource(R.string.settings_section_bands),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .pvotReveal(3)
+                    .pvotReveal(4)
             )
         }
         item {
@@ -90,7 +101,7 @@ fun SettingsScreen(preferences: AppPreferences, modifier: Modifier = Modifier) {
                 onCheckedChange = preferences::updateAdvancedMode,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .pvotReveal(4)
+                    .pvotReveal(5)
             )
         }
         item {
@@ -98,7 +109,7 @@ fun SettingsScreen(preferences: AppPreferences, modifier: Modifier = Modifier) {
                 title = stringResource(R.string.settings_section_appearance),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .pvotReveal(5)
+                    .pvotReveal(6)
             )
         }
         item {
@@ -109,7 +120,7 @@ fun SettingsScreen(preferences: AppPreferences, modifier: Modifier = Modifier) {
                 onCheckedChange = preferences::updateLiquidGlass,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .pvotReveal(6)
+                    .pvotReveal(7)
             )
         }
         item {
@@ -117,14 +128,14 @@ fun SettingsScreen(preferences: AppPreferences, modifier: Modifier = Modifier) {
                 title = stringResource(R.string.settings_section_about),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .pvotReveal(7)
+                    .pvotReveal(8)
             )
         }
         item {
             PvotCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .pvotReveal(8)
+                    .pvotReveal(9)
             ) {
                 SettingsRow(
                     title = stringResource(R.string.settings_version_title),
