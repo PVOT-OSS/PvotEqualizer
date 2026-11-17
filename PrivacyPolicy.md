@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-only
 
 # Privacy Policy — Equalizer
 
-_Effective 15 November 2026_
+_Effective 17 November 2026_
 
 Equalizer (package `org.prauga.equalizer`) is an audio equalizer published by Saalim
 Quadri for PVOT-OSS. This policy explains what the app does with your data.
@@ -57,6 +57,8 @@ Nothing is shared unless you choose to share it.
   music plays in another app.
 - `POST_NOTIFICATIONS`: for the ongoing notification Android requires while the equalizer runs. You
   can refuse it; the equalizer still works.
+- `RECEIVE_BOOT_COMPLETED`: after a restart, if the equalizer was on, to post a notification that
+  turns it back on when tapped. Nothing else runs at boot.
 
 The app does not have the `INTERNET` or microphone (`RECORD_AUDIO`) permission.
 

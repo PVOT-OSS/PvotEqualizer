@@ -51,7 +51,7 @@ class EqService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        createChannel()
+        createChannel(this)
         startForeground(NOTIFICATION_ID, buildNotification(engine.status.value))
         registerSessionReceiver()
         scope.launch {
@@ -65,6 +65,10 @@ class EqService : Service() {
                 // Persist first: otherwise the app would switch itself back on the next launch.
                 stateStore.savePowerOn(false)
                 equalizer.setEnabled(false)
+            }
+            ACTION_TURN_ON -> {
+                stateStore.savePowerOn(true)
+                equalizer.setEnabled(true)
             }
             ACTION_BYPASS -> engine.setBypassed(true)
             ACTION_RESUME -> engine.setBypassed(false)
@@ -102,18 +106,6 @@ class EqService : Service() {
         }
         ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
         sessionReceiver = receiver
-    }
-
-    private fun createChannel() {
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            getString(R.string.engine_notification_channel),
-            NotificationManager.IMPORTANCE_LOW
-        ).apply {
-            description = getString(R.string.engine_notification_channel_description)
-            setShowBadge(false)
-        }
-        getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 
     private fun buildNotification(status: EngineStatus): Notification {
@@ -192,10 +184,27 @@ class EqService : Service() {
 
         const val ACTION_RESUME = "org.prauga.equalizer.action.RESUME"
 
+        /** Turns the equalizer on from a notification, without opening the app. */
+        const val ACTION_TURN_ON = "org.prauga.equalizer.action.TURN_ON"
+
+        const val CHANNEL_ID = "eq_engine"
+
+        fun createChannel(context: Context) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                context.getString(R.string.engine_notification_channel),
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = context.getString(R.string.engine_notification_channel_description)
+                setShowBadge(false)
+            }
+            context.getSystemService(NotificationManager::class.java)
+                .createNotificationChannel(channel)
+        }
+
         /** The intent that starts this service. */
         fun intent(context: Context): Intent = Intent(context, EqService::class.java)
     }
 }
 
-private const val CHANNEL_ID = "eq_engine"
 private const val NOTIFICATION_ID = 1

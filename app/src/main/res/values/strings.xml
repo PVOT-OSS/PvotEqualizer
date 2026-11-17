@@ -46,6 +46,8 @@
     <string name="engine_notification_channel_description">Shows while the equalizer is running.</string>
     <string name="engine_action_turn_off">Turn off</string>
     <string name="engine_action_bypass">Bypass</string>
+    <string name="boot_notification_title">Equalizer was on before the restart</string>
+    <string name="boot_notification_text">Tap to turn it back on.</string>
     <string name="engine_action_resume">Resume</string>
     <string name="engine_notification_bypassed">Bypassed: audio plays without the curve</string>
     <string name="engine_notification_title">Equalizer is on</string>
