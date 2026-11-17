@@ -158,6 +158,7 @@ class DynamicsProcessingEngine(
         /* postEqBandCount = */ 0,
         /* limiterInUse = */ true
     )
+        .setPreferredFrameDuration(FRAME_DURATION_MS)
         .setLimiterAllChannelsTo(
             DynamicsProcessing.Limiter(
                 /* inUse = */ true,
@@ -218,6 +219,8 @@ private const val PRIORITY = 0
 private const val CHANNELS = 2
 private const val ENGINE_BANDS = DpBandFit.DEFAULT_BAND_COUNT
 private const val SAMPLE_RATE_HZ = 48_000.0
+
+private const val FRAME_DURATION_MS = 10f
 
 private const val LIMITER_ATTACK_MS = 1f
 private const val LIMITER_RELEASE_MS = 60f
