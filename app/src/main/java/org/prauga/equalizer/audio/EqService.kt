@@ -60,10 +60,14 @@ class EqService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_TURN_OFF) {
-            // Persist first: otherwise the app would switch itself back on the next launch.
-            stateStore.savePowerOn(false)
-            equalizer.setEnabled(false)
+        when (intent?.action) {
+            ACTION_TURN_OFF -> {
+                // Persist first: otherwise the app would switch itself back on the next launch.
+                stateStore.savePowerOn(false)
+                equalizer.setEnabled(false)
+            }
+            ACTION_BYPASS -> engine.setBypassed(true)
+            ACTION_RESUME -> engine.setBypassed(false)
         }
         return START_STICKY
     }
@@ -121,6 +125,7 @@ class EqService : Service() {
         )
         val text = when {
             status.failure != null -> getString(R.string.engine_notification_failed, status.failure)
+            status.bypassed -> getString(R.string.engine_notification_bypassed)
             status.global && status.sessions > 0 -> getString(R.string.engine_notification_global)
             status.attachedPackages.isEmpty() -> getString(R.string.engine_notification_waiting)
             else -> getString(
@@ -128,6 +133,12 @@ class EqService : Service() {
                 status.attachedPackages.joinToString()
             )
         }
+        val bypass = PendingIntent.getService(
+            this,
+            2,
+            intent(this).setAction(if (status.bypassed) ACTION_RESUME else ACTION_BYPASS),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
         val turnOff = PendingIntent.getService(
             this,
             1,
@@ -139,6 +150,13 @@ class EqService : Service() {
             .setContentTitle(getString(R.string.engine_notification_title))
             .setContentText(text)
             .setContentIntent(openApp)
+            .addAction(
+                0,
+                getString(
+                    if (status.bypassed) R.string.engine_action_resume else R.string.engine_action_bypass
+                ),
+                bypass
+            )
             .addAction(0, getString(R.string.engine_action_turn_off), turnOff)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
@@ -168,6 +186,11 @@ class EqService : Service() {
     companion object {
         /** Stops the equalizer from the notification, without opening the app. */
         const val ACTION_TURN_OFF = "org.prauga.equalizer.action.TURN_OFF"
+
+        /** Passes audio through untouched until [ACTION_RESUME], without turning the service off. */
+        const val ACTION_BYPASS = "org.prauga.equalizer.action.BYPASS"
+
+        const val ACTION_RESUME = "org.prauga.equalizer.action.RESUME"
 
         /** The intent that starts this service. */
         fun intent(context: Context): Intent = Intent(context, EqService::class.java)

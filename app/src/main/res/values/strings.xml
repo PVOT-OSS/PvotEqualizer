@@ -16,6 +16,7 @@
     <string name="eq_power_unshared">Music is playing, but its app has not shared its audio session. Pause and play again to connect it.</string>
     <string name="eq_power_connected">Equalizing %1$s</string>
     <string name="eq_power_failed">Engine unavailable: %1$s</string>
+    <string name="eq_power_bypassed">Bypassed from the notification. Tap Resume there to hear the curve again.</string>
     <string name="eq_power_global">Equalizing all audio (experimental). Some devices ignore this mode.</string>
 
     <string name="eq_preset">Preset</string>
@@ -44,6 +45,9 @@
     <string name="engine_notification_channel">Equalizer</string>
     <string name="engine_notification_channel_description">Shows while the equalizer is running.</string>
     <string name="engine_action_turn_off">Turn off</string>
+    <string name="engine_action_bypass">Bypass</string>
+    <string name="engine_action_resume">Resume</string>
+    <string name="engine_notification_bypassed">Bypassed: audio plays without the curve</string>
     <string name="engine_notification_title">Equalizer is on</string>
     <string name="engine_notification_waiting">Waiting for an app to share its audio</string>
     <string name="engine_notification_connected">Equalizing %1$s</string>

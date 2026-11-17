@@ -561,6 +561,7 @@ private fun PresetDropdown(name: String?, onClick: () -> Unit, modifier: Modifie
 private fun statusText(status: EngineStatus, musicPlaying: Boolean): String = when {
     status.failure != null -> stringResource(R.string.eq_power_failed, status.failure.orEmpty())
     !status.enabled -> stringResource(R.string.eq_power_off)
+    status.bypassed -> stringResource(R.string.eq_power_bypassed)
     status.global && status.sessions > 0 -> stringResource(R.string.eq_power_global)
     status.attachedPackages.isNotEmpty() ->
         stringResource(R.string.eq_power_connected, status.attachedPackages.joinToString())

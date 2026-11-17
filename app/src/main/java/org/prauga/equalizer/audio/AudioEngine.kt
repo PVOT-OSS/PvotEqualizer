@@ -12,6 +12,7 @@ import org.prauga.equalizer.core.model.EqProfile
  * @param attachedPackages Apps whose audio is being equalized, as far as they told us
  * @param failure Why the engine could not start, if it could not
  * @param global Whether the effect is on the whole output mix (session 0) instead of per app
+ * @param bypassed Whether the effect is attached but passing audio through untouched
  */
 data class EngineStatus(
     val enabled: Boolean = false,
@@ -19,7 +20,8 @@ data class EngineStatus(
     val sessions: Int = 0,
     val attachedPackages: List<String> = emptyList(),
     val failure: String? = null,
-    val global: Boolean = false
+    val global: Boolean = false,
+    val bypassed: Boolean = false
 )
 
 /**
@@ -48,6 +50,12 @@ interface AudioEngine {
      * session. Never both, or announced sessions would be equalized twice.
      */
     fun setGlobal(global: Boolean)
+
+    /**
+     * Passes audio through untouched while keeping every effect attached, for an A/B comparison
+     * that leaves the curve alone. Turning the equalizer off clears it.
+     */
+    fun setBypassed(bypassed: Boolean)
 
     /** Releases the effect for an audio session that has closed. */
     fun detach(sessionId: Int)

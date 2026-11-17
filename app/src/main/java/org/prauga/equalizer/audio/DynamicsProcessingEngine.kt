@@ -46,12 +46,14 @@ class DynamicsProcessingEngine(
     private var fitted: DpFit? = null
     private var isEnabled = false
     private var isGlobal = false
+    private var isBypassed = false
     private var failure: String? = null
 
     override fun setEnabled(enabled: Boolean) {
         scope.launch {
             isEnabled = enabled
             failure = null
+            if (!enabled) isBypassed = false
             if (enabled) attachAll() else releaseInstances()
             publish()
         }
@@ -64,6 +66,17 @@ class DynamicsProcessingEngine(
             failure = null
             releaseInstances()
             if (isEnabled) attachAll()
+            publish()
+        }
+    }
+
+    override fun setBypassed(bypassed: Boolean) {
+        scope.launch {
+            isBypassed = bypassed && isEnabled
+            for (effect in instances.values) {
+                runCatching { effect.setEnabled(!isBypassed) }
+                    .onFailure { failure = describe(it) }
+            }
             publish()
         }
     }
@@ -141,7 +154,7 @@ class DynamicsProcessingEngine(
         try {
             effect = DynamicsProcessing(PRIORITY, sessionId, buildConfig())
             effect.setPreEqAllChannelsTo(eqFor(fitNow().bands))
-            effect.setEnabled(true)
+            effect.setEnabled(!isBypassed)
             instances[sessionId] = effect
             failure = null
             attached = true
@@ -223,7 +236,8 @@ class DynamicsProcessingEngine(
             sessions = instances.size,
             attachedPackages = instances.keys.mapNotNull(packages::get).distinct().sorted(),
             failure = failure,
-            global = isGlobal
+            global = isGlobal,
+            bypassed = isBypassed
         )
     }
 
