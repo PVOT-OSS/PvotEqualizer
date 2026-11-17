@@ -2,9 +2,11 @@ package org.prauga.equalizer.ui.screens.equalizer
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -44,6 +46,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -140,9 +143,17 @@ fun EqualizerScreen(preferences: AppPreferences, modifier: Modifier = Modifier) 
     }
 
     val context = LocalContext.current
+    var notificationsShown by remember { mutableStateOf(notificationsAllowed(context)) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        notificationsShown = notificationsAllowed(context)
+    }
+
     val notificationPermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { /* The service runs either way; without the grant its notification is just hidden. */ }
+    ) { granted ->
+        // The service runs either way; without the grant its notification is just hidden.
+        notificationsShown = granted && notificationsAllowed(context)
+    }
 
     // Something audible may be playing while no app has announced a session. Say that, rather than
     // claiming there is "no audio session yet" while music is plainly coming out of the speaker.
@@ -204,6 +215,29 @@ fun EqualizerScreen(preferences: AppPreferences, modifier: Modifier = Modifier) 
                     )
                 }
                 Switch(checked = status.enabled, onCheckedChange = viewModel::setEnabled)
+            }
+        }
+
+        if (status.enabled && !notificationsShown) {
+            item {
+                PvotCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .pvotReveal(1)
+                ) {
+                    Column(modifier = Modifier.padding(PvotSpacing.L)) {
+                        Text(
+                            text = stringResource(R.string.eq_notifications_off),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        PvotButton(
+                            text = stringResource(R.string.eq_notifications_open_settings),
+                            onClick = { openNotificationSettings(context) },
+                            style = PvotButtonStyle.Text
+                        )
+                    }
+                }
             }
         }
 
@@ -526,6 +560,16 @@ private fun statusText(status: EngineStatus, musicPlaying: Boolean): String = wh
         stringResource(R.string.eq_power_connected, status.attachedPackages.joinToString())
     musicPlaying -> stringResource(R.string.eq_power_unshared)
     else -> stringResource(R.string.eq_power_waiting)
+}
+
+private fun notificationsAllowed(context: Context): Boolean =
+    NotificationManagerCompat.from(context).areNotificationsEnabled()
+
+private fun openNotificationSettings(context: Context) {
+    context.startActivity(
+        Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+            .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+    )
 }
 
 private fun needsNotificationPermission(context: Context): Boolean =
