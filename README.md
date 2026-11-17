@@ -33,10 +33,15 @@ Early, but usable. What works today:
   file or pasted text. Import reads PvotEqualizer JSON as well as AutoEQ `ParametricEQ.txt` and
   `GraphicEQ.txt`.
 - **One-level undo** for deleting a preset, resetting the curve, applying a preset and zeroing a band.
-- **Audio engine** on `DynamicsProcessing`, run from a foreground service with a Turn off action in
-  its notification.
-
-Not built yet: restoring the EQ after a reboot, a Quick Settings tile, and an all-apps mode.
+- **Audio engine** on `DynamicsProcessing` with a limiter against clipping, run from a foreground
+  service whose notification offers Bypass/Resume and Turn off.
+- **Quick Settings tile** to turn the equalizer on and off.
+- **Test sound**: pink noise played through the curve, so you can hear it without another app.
+- **After a restart**, a notification offers to turn the equalizer back on if it was on.
+- **All apps (experimental)**: equalizes the whole output instead of only apps that share their
+  audio session. Some devices ignore it.
+- **Accessible**: every gain slider is labelled and read in dB; the curve can be read and its bands
+  picked or reset with a screen reader.
 
 ## Design notes
 
