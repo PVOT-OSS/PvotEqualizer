@@ -15,7 +15,8 @@ import org.prauga.equalizer.core.dsp.DpBandFit
 import org.prauga.equalizer.core.dsp.DpFit
 
 /**
- * The real engine: one `DynamicsProcessing` per audio session, using only the pre-EQ stage.
+ * The real engine: one `DynamicsProcessing` per audio session, using the pre-EQ stage for the curve
+ * and the limiter so a boosted curve cannot push the signal past full scale.
  *
  * Every call is marshalled onto one background thread, because an audio effect must not be
  * configured from the UI thread and the calls would otherwise interleave. The band count is fixed
@@ -155,8 +156,21 @@ class DynamicsProcessingEngine(
         /* mbcBandCount = */ 0,
         /* postEqInUse = */ false,
         /* postEqBandCount = */ 0,
-        /* limiterInUse = */ false
-    ).build()
+        /* limiterInUse = */ true
+    )
+        .setLimiterAllChannelsTo(
+            DynamicsProcessing.Limiter(
+                /* inUse = */ true,
+                /* enabled = */ true,
+                /* linkGroup = */ 0,
+                /* attackTime = */ LIMITER_ATTACK_MS,
+                /* releaseTime = */ LIMITER_RELEASE_MS,
+                /* ratio = */ LIMITER_RATIO,
+                /* threshold = */ LIMITER_THRESHOLD_DB,
+                /* postGain = */ 0f
+            )
+        )
+        .build()
 
     private fun eqFor(bands: List<DpBand>): DynamicsProcessing.Eq {
         val eq = DynamicsProcessing.Eq(/* inUse = */ true, /* enabled = */ true, bands.size)
@@ -204,6 +218,11 @@ private const val PRIORITY = 0
 private const val CHANNELS = 2
 private const val ENGINE_BANDS = DpBandFit.DEFAULT_BAND_COUNT
 private const val SAMPLE_RATE_HZ = 48_000.0
+
+private const val LIMITER_ATTACK_MS = 1f
+private const val LIMITER_RELEASE_MS = 60f
+private const val LIMITER_RATIO = 10f
+private const val LIMITER_THRESHOLD_DB = -1f
 
 /**
  * The engine's own ceiling, applied before the band reaches `DynamicsProcessing` so an out-of-range
