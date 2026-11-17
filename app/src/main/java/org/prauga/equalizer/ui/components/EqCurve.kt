@@ -279,7 +279,7 @@ fun EqCurve(
             place(
                 index,
                 x,
-                textMeasurer.measure(formatFrequency(band.frequencyHz), labelStyle)
+                textMeasurer.measure(formatAxisFrequency(band.frequencyHz), labelStyle)
                     .size.width.toFloat(),
                 frequencyRowEdge,
                 frequencyRowOf
@@ -314,7 +314,7 @@ fun EqCurve(
             frequencyRowOf[index]?.let { row ->
                 drawCentredText(
                     textMeasurer = textMeasurer,
-                    text = formatFrequency(band.frequencyHz),
+                    text = formatAxisFrequency(band.frequencyHz),
                     centreX = x,
                     top = frequencyRowTop[row],
                     style = if (selected) selectedLabelStyle else labelStyle
@@ -339,7 +339,7 @@ private fun DrawScope.drawCentredText(
 
 private fun formatGain(db: Double): String = String.format(Locale.US, "%.1f", db)
 
-private fun formatFrequency(hz: Double): String {
+private fun formatAxisFrequency(hz: Double): String {
     val kilo = hz >= 1_000.0
     val value = if (kilo) hz / 1_000.0 else hz
     val number = if (value == value.toLong().toDouble()) {

@@ -69,6 +69,8 @@ import org.prauga.equalizer.ui.components.EqSlider
 import org.prauga.equalizer.ui.components.UndoBar
 import org.prauga.equalizer.ui.components.ValueEntryDialog
 import org.prauga.equalizer.ui.components.ValuePill
+import org.prauga.equalizer.ui.components.formatDb
+import org.prauga.equalizer.ui.components.formatFrequency
 
 /** How much a tap on the stepper buttons moves the selected band. */
 private const val STEP_DB = 0.1
@@ -433,11 +435,6 @@ fun EqualizerScreen(preferences: AppPreferences, modifier: Modifier = Modifier) 
     }
 }
 
-private fun formatDb(db: Double): String {
-    val normalized = if (kotlin.math.abs(db) < 0.05) 0.0 else db
-    return String.format(Locale.US, "%+.1f", normalized)
-}
-
 /** Whole decibels, for axis labels: -12, 0, +12. */
 private val CardShape = RoundedCornerShape(12.dp)
 
@@ -489,17 +486,6 @@ private fun PresetDropdown(name: String?, onClick: () -> Unit, modifier: Modifie
             )
         }
     }
-}
-
-private fun formatFrequency(hz: Double): String {
-    val kilo = hz >= 1_000.0
-    val value = if (kilo) hz / 1_000.0 else hz
-    val number = if (value == value.toLong().toDouble()) {
-        value.toLong().toString()
-    } else {
-        String.format(Locale.US, "%.1f", value)
-    }
-    return if (kilo) "$number kHz" else "$number Hz"
 }
 
 @Composable

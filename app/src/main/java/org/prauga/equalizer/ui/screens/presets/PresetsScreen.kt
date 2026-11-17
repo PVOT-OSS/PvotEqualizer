@@ -54,7 +54,6 @@ import com.prauga.pvot.designsystem.components.PvotSheetItem
 import com.prauga.pvot.designsystem.components.textfield.PvotTextField
 import com.prauga.pvot.designsystem.motion.pvotReveal
 import com.prauga.pvot.designsystem.theme.PvotSpacing
-import java.util.Locale
 import kotlinx.coroutines.delay
 import org.prauga.equalizer.R
 import org.prauga.equalizer.data.PresetJson
@@ -66,6 +65,7 @@ import org.prauga.equalizer.ui.components.EqCurve
 import org.prauga.equalizer.ui.components.EqSlider
 import org.prauga.equalizer.ui.components.UndoBar
 import org.prauga.equalizer.ui.components.ValuePill
+import org.prauga.equalizer.ui.components.formatDb
 import org.prauga.equalizer.ui.screens.equalizer.EqualizerViewModel
 
 /** What the naming dialog is currently doing. */
@@ -541,15 +541,6 @@ private fun PresetRow(
             trailing?.invoke()
         }
     }
-}
-
-/**
- * One decimal with an explicit sign. Values a rounding error away from zero print as 0.0 rather
- * than -0.0, which reads as a bug on a control the user just reset.
- */
-private fun formatDb(db: Double): String {
-    val normalized = if (kotlin.math.abs(db) < 0.05) 0.0 else db
-    return String.format(Locale.US, "%+.1f", normalized)
 }
 
 private val IMPORT_MIME_TYPES =
