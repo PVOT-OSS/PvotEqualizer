@@ -466,6 +466,11 @@ fun PresetsScreen(modifier: Modifier = Modifier) {
                                 )
                             )
                         },
+                        label = stringResource(R.string.value_entry_preamp),
+                        valueText = stringResource(
+                            R.string.eq_db_value,
+                            formatDb(editProfile.preampDb)
+                        ),
                         valueRange = EqProfile.MIN_PREAMP_DB.toFloat()..
                             EqProfile.MAX_PREAMP_DB.toFloat(),
                         modifier = Modifier.padding(horizontal = PvotSpacing.L)

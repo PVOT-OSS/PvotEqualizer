@@ -21,9 +21,11 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.setProgress
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import com.prauga.pvot.designsystem.components.slider.PvotSliderDefaults
 import kotlin.math.abs
@@ -39,6 +41,8 @@ import kotlin.math.min
  * @param value Current value
  * @param valueRange Allowed range; [zeroValue] is where the fill starts
  * @param onValueChange Called with the value under the finger
+ * @param label What the slider controls, read out by a screen reader
+ * @param valueText The current value as it should be read out, with its unit
  * @param zeroValue The value the fill grows from, usually 0 dB
  */
 @Composable
@@ -46,6 +50,8 @@ fun EqSlider(
     value: Float,
     valueRange: ClosedFloatingPointRange<Float>,
     onValueChange: (Float) -> Unit,
+    label: String,
+    valueText: String,
     modifier: Modifier = Modifier,
     zeroValue: Float = 0f
 ) {
@@ -75,6 +81,8 @@ fun EqSlider(
             .fillMaxWidth()
             .height(PvotSliderDefaults.TouchHeight)
             .semantics {
+                contentDescription = label
+                stateDescription = valueText
                 progressBarRangeInfo = ProgressBarRangeInfo(value, valueRange, 0)
                 setProgress { target ->
                     emit(target.coerceIn(valueRange.start, valueRange.endInclusive))

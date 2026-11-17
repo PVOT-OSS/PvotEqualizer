@@ -299,6 +299,11 @@ fun EqualizerScreen(preferences: AppPreferences, modifier: Modifier = Modifier) 
                     EqSlider(
                         value = profile.preampDb.toFloat(),
                         onValueChange = { viewModel.setPreamp(it.toDouble()) },
+                        label = stringResource(R.string.value_entry_preamp),
+                        valueText = stringResource(
+                            R.string.eq_db_value,
+                            formatDb(profile.preampDb)
+                        ),
                         valueRange = EqProfile.MIN_PREAMP_DB.toFloat()..
                             EqProfile.MAX_PREAMP_DB.toFloat()
                     )
@@ -354,6 +359,11 @@ fun EqualizerScreen(preferences: AppPreferences, modifier: Modifier = Modifier) 
                         onValueChange = {
                             viewModel.setTargetGain(selectedBand.id, it.toDouble())
                         },
+                        label = stringResource(
+                            R.string.value_entry_band,
+                            formatFrequency(selectedBand.frequencyHz)
+                        ),
+                        valueText = stringResource(R.string.eq_db_value, formatDb(heardDb)),
                         valueRange = EqProfile.MIN_GAIN_DB.toFloat()..
                             EqProfile.MAX_GAIN_DB.toFloat()
                     )
