@@ -8,10 +8,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import org.json.JSONArray
 import org.json.JSONObject
-import org.prauga.equalizer.domain.EqBands
-import org.prauga.equalizer.domain.EqMode
-import org.prauga.equalizer.domain.EqProfile
-import org.prauga.equalizer.domain.Preset
+import org.prauga.equalizer.core.model.EqBands
+import org.prauga.equalizer.core.model.EqMode
+import org.prauga.equalizer.core.model.EqProfile
+import org.prauga.equalizer.core.model.Preset
 
 /**
  * Where the curve, the power state and the presets live between launches.

@@ -33,9 +33,9 @@ import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.sqrt
-import org.prauga.equalizer.domain.EqProfile
-import org.prauga.equalizer.domain.ParametricBand
-import org.prauga.equalizer.dsp.ProfileResponse
+import org.prauga.equalizer.core.model.EqProfile
+import org.prauga.equalizer.core.model.ParametricBand
+import org.prauga.equalizer.core.dsp.ProfileResponse
 
 /**
  * The equalizer as one control: the curve and its faders are the same drawing.

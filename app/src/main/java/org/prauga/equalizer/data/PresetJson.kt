@@ -2,8 +2,8 @@ package org.prauga.equalizer.data
 
 import java.util.UUID
 import org.json.JSONObject
-import org.prauga.equalizer.domain.EqMode
-import org.prauga.equalizer.domain.Preset
+import org.prauga.equalizer.core.model.EqMode
+import org.prauga.equalizer.core.model.Preset
 
 /**
  * The stored and shared form of a preset.

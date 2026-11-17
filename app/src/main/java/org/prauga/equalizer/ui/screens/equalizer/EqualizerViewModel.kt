@@ -18,12 +18,12 @@ import org.prauga.equalizer.audio.EqController
 import org.prauga.equalizer.data.AutoEqImport
 import org.prauga.equalizer.data.EqStateStore
 import org.prauga.equalizer.data.PresetJson
-import org.prauga.equalizer.domain.EqBands
-import org.prauga.equalizer.domain.EqMode
-import org.prauga.equalizer.domain.EqProfile
-import org.prauga.equalizer.domain.Preset
-import org.prauga.equalizer.dsp.DpBandFit
-import org.prauga.equalizer.dsp.withTargetGain
+import org.prauga.equalizer.core.model.EqBands
+import org.prauga.equalizer.core.model.EqMode
+import org.prauga.equalizer.core.model.EqProfile
+import org.prauga.equalizer.core.model.Preset
+import org.prauga.equalizer.core.dsp.DpBandFit
+import org.prauga.equalizer.core.dsp.withTargetGain
 
 /**
  * The editor's state: the curve, the selected band, the engine's status and the saved presets.

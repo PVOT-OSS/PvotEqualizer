@@ -1,4 +1,4 @@
-package org.prauga.equalizer.domain
+package org.prauga.equalizer.core.model
 
 /**
  * How much bandwidth the editor offers.

@@ -1,4 +1,4 @@
-package org.prauga.equalizer.domain
+package org.prauga.equalizer.core.model
 
 import java.util.UUID
 

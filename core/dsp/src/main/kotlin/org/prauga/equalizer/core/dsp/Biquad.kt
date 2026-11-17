@@ -1,4 +1,4 @@
-package org.prauga.equalizer.dsp
+package org.prauga.equalizer.core.dsp
 
 import kotlin.math.PI
 import kotlin.math.cos
@@ -6,8 +6,8 @@ import kotlin.math.log10
 import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
-import org.prauga.equalizer.domain.BandType
-import org.prauga.equalizer.domain.ParametricBand
+import org.prauga.equalizer.core.model.BandType
+import org.prauga.equalizer.core.model.ParametricBand
 
 /**
  * Normalized biquad coefficients, with `a0` already divided out.

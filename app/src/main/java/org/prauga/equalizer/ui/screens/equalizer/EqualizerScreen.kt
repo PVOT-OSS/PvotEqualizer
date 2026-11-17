@@ -60,9 +60,9 @@ import kotlinx.coroutines.delay
 import org.prauga.equalizer.AppPreferences
 import org.prauga.equalizer.R
 import org.prauga.equalizer.audio.EngineStatus
-import org.prauga.equalizer.domain.EqMode
-import org.prauga.equalizer.domain.EqProfile
-import org.prauga.equalizer.dsp.ProfileResponse
+import org.prauga.equalizer.core.model.EqMode
+import org.prauga.equalizer.core.model.EqProfile
+import org.prauga.equalizer.core.dsp.ProfileResponse
 import org.prauga.equalizer.ui.components.BUILT_IN_CURVES
 import org.prauga.equalizer.ui.components.EqCurve
 import org.prauga.equalizer.ui.components.EqSlider

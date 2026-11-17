@@ -1,7 +1,7 @@
 package org.prauga.equalizer.audio
 
 import kotlinx.coroutines.flow.StateFlow
-import org.prauga.equalizer.domain.EqProfile
+import org.prauga.equalizer.core.model.EqProfile
 
 /**
  * What the engine is doing, for the screen to show honestly and for tests to assert on.

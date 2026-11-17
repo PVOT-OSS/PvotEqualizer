@@ -64,6 +64,9 @@ dependencies {
     implementation(libs.pvot.design.system)
     implementation(libs.pvot.core.ui)
 
+    implementation(project(":core:model"))
+    implementation(project(":core:dsp"))
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)

@@ -10,7 +10,7 @@ import com.prauga.pvot.designsystem.effects.PvotGlassDefaults
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
-import org.prauga.equalizer.domain.EqMode
+import org.prauga.equalizer.core.model.EqMode
 
 /** The app's settings, kept in SharedPreferences and observable from Compose. */
 @Singleton

@@ -1,6 +1,6 @@
-package org.prauga.equalizer.dsp
+package org.prauga.equalizer.core.dsp
 
-import org.prauga.equalizer.domain.EqProfile
+import org.prauga.equalizer.core.model.EqProfile
 
 /**
  * Sets what is heard at a band's frequency, which is the value the chart draws at its handle.

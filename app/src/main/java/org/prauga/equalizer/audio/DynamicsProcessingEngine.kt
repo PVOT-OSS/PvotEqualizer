@@ -9,10 +9,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.prauga.equalizer.domain.EqProfile
-import org.prauga.equalizer.dsp.DpBand
-import org.prauga.equalizer.dsp.DpBandFit
-import org.prauga.equalizer.dsp.DpFit
+import org.prauga.equalizer.core.model.EqProfile
+import org.prauga.equalizer.core.dsp.DpBand
+import org.prauga.equalizer.core.dsp.DpBandFit
+import org.prauga.equalizer.core.dsp.DpFit
 
 /**
  * The real engine: one `DynamicsProcessing` per audio session, using only the pre-EQ stage.

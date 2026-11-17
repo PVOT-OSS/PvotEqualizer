@@ -1,4 +1,4 @@
-package org.prauga.equalizer.dsp
+package org.prauga.equalizer.core.dsp
 
 import java.util.PriorityQueue
 import kotlin.math.abs
@@ -6,7 +6,7 @@ import kotlin.math.ln
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.roundToInt
-import org.prauga.equalizer.domain.EqProfile
+import org.prauga.equalizer.core.model.EqProfile
 
 /**
  * One band as `DynamicsProcessing` wants it: a cutoff and a gain, with no Q.

@@ -1,4 +1,4 @@
-package org.prauga.equalizer.domain
+package org.prauga.equalizer.core.model
 
 /** The shape of a [ParametricBand]. */
 enum class BandType {
@@ -41,7 +41,7 @@ data class ParametricBand(
  * The complete equalizer setting: a preamp and the bands.
  *
  * This is the single source of truth for the sound. The curve on screen is drawn from it through
- * [org.prauga.equalizer.dsp.ProfileResponse] and the engine receives the same profile fitted onto
+ * [org.prauga.equalizer.core.dsp.ProfileResponse] and the engine receives the same profile fitted onto
  * `DynamicsProcessing` bands, so what is drawn and what is heard cannot drift apart.
  *
  * @param preampDb Headroom applied to every band, in decibels

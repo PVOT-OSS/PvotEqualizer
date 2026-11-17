@@ -58,9 +58,9 @@ import java.util.Locale
 import kotlinx.coroutines.delay
 import org.prauga.equalizer.R
 import org.prauga.equalizer.data.PresetJson
-import org.prauga.equalizer.domain.EqProfile
-import org.prauga.equalizer.domain.Preset
-import org.prauga.equalizer.dsp.withTargetGain
+import org.prauga.equalizer.core.model.EqProfile
+import org.prauga.equalizer.core.model.Preset
+import org.prauga.equalizer.core.dsp.withTargetGain
 import org.prauga.equalizer.ui.components.BUILT_IN_CURVES
 import org.prauga.equalizer.ui.components.EqCurve
 import org.prauga.equalizer.ui.components.EqSlider

@@ -1,9 +1,9 @@
-package org.prauga.equalizer.dsp
+package org.prauga.equalizer.core.dsp
 
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
-import org.prauga.equalizer.domain.EqProfile
+import org.prauga.equalizer.core.model.EqProfile
 
 /**
  * The analytic response of a whole [EqProfile]: the preamp plus every enabled band.

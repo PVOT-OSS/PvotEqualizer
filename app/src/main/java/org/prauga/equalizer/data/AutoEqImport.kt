@@ -3,14 +3,14 @@ package org.prauga.equalizer.data
 import java.util.UUID
 import kotlin.math.abs
 import kotlin.math.ln
-import org.prauga.equalizer.domain.BandType
-import org.prauga.equalizer.domain.EqBands
-import org.prauga.equalizer.domain.EqMode
-import org.prauga.equalizer.domain.EqProfile
-import org.prauga.equalizer.domain.ParametricBand
-import org.prauga.equalizer.domain.Preset
-import org.prauga.equalizer.dsp.Biquad
-import org.prauga.equalizer.dsp.ProfileResponse
+import org.prauga.equalizer.core.model.BandType
+import org.prauga.equalizer.core.model.EqBands
+import org.prauga.equalizer.core.model.EqMode
+import org.prauga.equalizer.core.model.EqProfile
+import org.prauga.equalizer.core.model.ParametricBand
+import org.prauga.equalizer.core.model.Preset
+import org.prauga.equalizer.core.dsp.Biquad
+import org.prauga.equalizer.core.dsp.ProfileResponse
 
 /**
  * Reads the two text formats AutoEQ exports, so curves people already have can come across.

@@ -1,12 +1,12 @@
-package org.prauga.equalizer.dsp
+package org.prauga.equalizer.core.dsp
 
 import kotlin.math.abs
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.prauga.equalizer.domain.BandType
-import org.prauga.equalizer.domain.EqProfile
-import org.prauga.equalizer.domain.ParametricBand
+import org.prauga.equalizer.core.model.BandType
+import org.prauga.equalizer.core.model.EqProfile
+import org.prauga.equalizer.core.model.ParametricBand
 
 class BiquadTest {
 
