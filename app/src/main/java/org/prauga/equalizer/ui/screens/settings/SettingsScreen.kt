@@ -83,38 +83,15 @@ fun SettingsScreen(preferences: AppPreferences, modifier: Modifier = Modifier) {
             )
         }
         item {
-            PvotCard(
+            SwitchCard(
+                title = stringResource(R.string.settings_advanced_title),
+                subtitle = stringResource(R.string.settings_advanced_subtitle),
+                checked = preferences.advancedMode,
+                onCheckedChange = preferences::updateAdvancedMode,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .pvotReveal(4),
-                onClick = { preferences.updateAdvancedMode(!preferences.advancedMode) }
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(PvotSpacing.L),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(PvotSpacing.L)
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.settings_advanced_title),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = stringResource(R.string.settings_advanced_subtitle),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = PvotSpacing.XS)
-                        )
-                    }
-                    Switch(
-                        checked = preferences.advancedMode,
-                        onCheckedChange = preferences::updateAdvancedMode
-                    )
-                }
-            }
+                    .pvotReveal(4)
+            )
         }
         item {
             PvotSectionHeader(
@@ -125,38 +102,15 @@ fun SettingsScreen(preferences: AppPreferences, modifier: Modifier = Modifier) {
             )
         }
         item {
-            PvotCard(
+            SwitchCard(
+                title = stringResource(R.string.settings_glass_title),
+                subtitle = stringResource(R.string.settings_glass_subtitle),
+                checked = preferences.liquidGlass,
+                onCheckedChange = preferences::updateLiquidGlass,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .pvotReveal(6),
-                onClick = { preferences.updateLiquidGlass(!preferences.liquidGlass) }
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(PvotSpacing.L),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(PvotSpacing.L)
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.settings_glass_title),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = stringResource(R.string.settings_glass_subtitle),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = PvotSpacing.XS)
-                        )
-                    }
-                    Switch(
-                        checked = preferences.liquidGlass,
-                        onCheckedChange = preferences::updateLiquidGlass
-                    )
-                }
-            }
+                    .pvotReveal(6)
+            )
         }
         item {
             PvotSectionHeader(
@@ -202,6 +156,40 @@ private fun engineSubtitle(status: EngineStatus): String = when {
         status.bandCount,
         status.bandCount
     )
+}
+
+@Composable
+private fun SwitchCard(
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    PvotCard(modifier = modifier, onClick = { onCheckedChange(!checked) }) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(PvotSpacing.L),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(PvotSpacing.L)
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = PvotSpacing.XS)
+                )
+            }
+            Switch(checked = checked, onCheckedChange = onCheckedChange)
+        }
+    }
 }
 
 @Composable
