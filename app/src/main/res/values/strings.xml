@@ -23,6 +23,12 @@
     <string name="eq_preamp">Preamp</string>
 
     <string name="eq_db_value">%1$s dB</string>
+
+    <string name="intro_title">How Equalizer works</string>
+    <string name="intro_sessions">It changes the sound of apps that share their audio session with Android, such as most music players. Apps that do not, such as many video and browser apps, stay as they are unless you turn on All apps in Settings.</string>
+    <string name="intro_power">Turn it on with the switch at the top, or add the Equalizer tile to Quick Settings.</string>
+    <string name="intro_presets">Drag a band on the curve to shape the sound. Presets holds built-in curves, your own, and AutoEQ imports.</string>
+    <string name="intro_ok">Got it</string>
     <string name="eq_reset">Reset</string>
 
     <!-- The ongoing notification the foreground service needs -->

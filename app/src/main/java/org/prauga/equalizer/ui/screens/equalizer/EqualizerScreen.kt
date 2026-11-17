@@ -385,6 +385,10 @@ fun EqualizerScreen(preferences: AppPreferences, modifier: Modifier = Modifier) 
         }
     }
 
+    if (!preferences.introSeen) {
+        IntroDialog(onDismiss = preferences::markIntroSeen)
+    }
+
     valueTarget?.let { target ->
         val isPreamp = target.bandId == null
         ValueEntryDialog(

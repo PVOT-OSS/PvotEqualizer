@@ -52,6 +52,14 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
         globalMode = enabled
     }
 
+    var introSeen by mutableStateOf(prefs.getBoolean(KEY_INTRO_SEEN, false))
+        private set
+
+    fun markIntroSeen() {
+        prefs.edit { putBoolean(KEY_INTRO_SEEN, true) }
+        introSeen = true
+    }
+
     /** The editor's band allowance, derived from [advancedMode]. */
     val mode: EqMode
         get() = if (advancedMode) EqMode.ADVANCED else EqMode.SIMPLE
@@ -61,5 +69,6 @@ class AppPreferences @Inject constructor(@ApplicationContext context: Context) {
         const val KEY_LIQUID_GLASS = "liquid_glass"
         const val KEY_ADVANCED_MODE = "advanced_mode"
         const val KEY_GLOBAL_MODE = "global_mode"
+        const val KEY_INTRO_SEEN = "intro_seen"
     }
 }
