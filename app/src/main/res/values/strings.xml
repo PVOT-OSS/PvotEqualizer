@@ -33,6 +33,10 @@
     <string name="engine_notification_connected">Equalizing %1$s</string>
     <string name="engine_notification_failed">Unavailable: %1$s</string>
 
+    <string name="tile_label">Equalizer</string>
+    <string name="tile_on">On</string>
+    <string name="tile_off">Off</string>
+
     <!-- Presets -->
     <string name="action_undo">Undo</string>
     <string name="undo_preset_deleted">Preset deleted</string>
