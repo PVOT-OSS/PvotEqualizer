@@ -311,8 +311,8 @@ fun EqualizerScreen(preferences: AppPreferences, modifier: Modifier = Modifier) 
             }
         }
 
-        // The selected band's own controls: precise adjustment, and the path a screen reader uses,
-        // since a canvas cannot expose each handle as a separate control.
+        // The selected band's own controls: precise adjustment, and the slider a screen reader uses
+        // once the curve's accessibility actions have picked a band.
         item {
             PvotCard(
                 modifier = Modifier

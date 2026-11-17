@@ -51,6 +51,10 @@
     <string name="presets_section_builtin">Built in</string>
     <string name="presets_section_saved">Your presets</string>
     <string name="cd_more_options">More options</string>
+    <string name="cd_curve">Equalizer curve, %1$s selected. %2$s</string>
+    <string name="cd_curve_band">%1$s %2$s dB</string>
+    <string name="action_select_band">Select %1$s</string>
+    <string name="action_reset_band">Reset %1$s to 0 dB</string>
     <string name="presets_edit_curve">Edit curve</string>
     <string name="presets_edit_curve_subtitle">Open this curve in its own editor</string>
     <string name="presets_editor_title">Editing %1$s</string>

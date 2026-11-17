@@ -23,6 +23,11 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -33,6 +38,7 @@ import kotlin.math.abs
 import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.sqrt
+import org.prauga.equalizer.R
 import org.prauga.equalizer.core.model.EqProfile
 import org.prauga.equalizer.core.model.ParametricBand
 import org.prauga.equalizer.core.dsp.ProfileResponse
@@ -46,9 +52,10 @@ import org.prauga.equalizer.core.dsp.ProfileResponse
  *
  * @param profile The curve to draw
  * @param selectedBandId The band drawn as selected
- * @param onSelectBand Called when a handle is touched
+ * @param onSelectBand Called when a handle is touched, or a band is picked from the accessibility actions
  * @param onTargetGain Called continuously while a handle is dragged
- * @param onResetBand Called when a band is held, to put it back to 0 dB
+ * @param onResetBand Called when a band is held or reset from the accessibility actions, to put it
+ *   back to 0 dB
  * @param modifier Modifier for the control
  * @param height How tall the plot is; the screen decides so it fits the device
  */
@@ -79,10 +86,40 @@ fun EqCurve(
     val changeGain by rememberUpdatedState(onTargetGain)
     val resetBand by rememberUpdatedState(onResetBand)
 
+    val selected = profile.bands.firstOrNull { it.id == selectedBandId } ?: profile.bands.first()
+    val bandSummaries = profile.bands.map { band ->
+        stringResource(
+            R.string.cd_curve_band,
+            formatFrequency(band.frequencyHz),
+            formatDb(response.dbAt(band.frequencyHz))
+        )
+    }
+    val description = stringResource(
+        R.string.cd_curve,
+        formatFrequency(selected.frequencyHz),
+        bandSummaries.joinToString()
+    )
+    val selectLabels = profile.bands.map {
+        stringResource(R.string.action_select_band, formatFrequency(it.frequencyHz))
+    }
+    val resetLabel = stringResource(R.string.action_reset_band, formatFrequency(selected.frequencyHz))
+
     Canvas(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
+            .semantics {
+                contentDescription = description
+                customActions = profile.bands.mapIndexed { index, band ->
+                    CustomAccessibilityAction(selectLabels[index]) {
+                        selectBand(band.id)
+                        true
+                    }
+                } + CustomAccessibilityAction(resetLabel) {
+                    resetBand(selected.id)
+                    true
+                }
+            }
             .pointerInput(Unit) {
                 val touchSlop = 22.dp.toPx()
 
