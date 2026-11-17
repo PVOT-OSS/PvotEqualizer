@@ -26,10 +26,23 @@ class EqStateStore @Inject constructor(@ApplicationContext context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    fun loadPowerOn(): Boolean = prefs.getBoolean(KEY_POWER, false)
+    // Kept apart from the curve so backup can leave it out: a restored phone must not switch the
+    // equalizer on by itself.
+    private val powerPrefs: SharedPreferences =
+        context.getSharedPreferences(POWER_PREFS_NAME, Context.MODE_PRIVATE)
+
+    init {
+        if (prefs.contains(KEY_POWER)) {
+            val on = prefs.getBoolean(KEY_POWER, false)
+            powerPrefs.edit { putBoolean(KEY_POWER, on) }
+            prefs.edit { remove(KEY_POWER) }
+        }
+    }
+
+    fun loadPowerOn(): Boolean = powerPrefs.getBoolean(KEY_POWER, false)
 
     fun savePowerOn(on: Boolean) {
-        prefs.edit { putBoolean(KEY_POWER, on) }
+        powerPrefs.edit { putBoolean(KEY_POWER, on) }
     }
 
     /** The curve saved for [mode], or a flat one. Each mode keeps its own. */
@@ -83,6 +96,7 @@ class EqStateStore @Inject constructor(@ApplicationContext context: Context) {
 
     private companion object {
         const val PREFS_NAME = "eq_state"
+        const val POWER_PREFS_NAME = "eq_power"
         const val KEY_POWER = "power_on"
         const val KEY_PRESETS = "presets"
     }
